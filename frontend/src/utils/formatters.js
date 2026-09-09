@@ -59,3 +59,4 @@ export function calculateDays(start, end) {
   if (diffMs <= 0) return 1;
   return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
 }
+

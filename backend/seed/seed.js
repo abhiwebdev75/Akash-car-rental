@@ -152,29 +152,29 @@ async function seed() {
   console.log('  ✓ settings');
 
   // ── Locations ────────────────────────────────────────────────────────────────
-  const [blr, mys] = await Location.create([
+  const [chd, khr] = await Location.create([
     {
-      name: 'Bengaluru — Indiranagar',
-      code: 'BLR',
-      address: '100 Feet Road, Indiranagar',
-      city: 'Bengaluru',
-      state: 'Karnataka',
-      pincode: '560038',
-      phone: '+91 98200 10001',
-      geo: { lat: 12.9719, lng: 77.6412 },
+      name: 'Chandigarh — Sector 17 City Hub',
+      code: 'IXC',
+      address: 'Near Neelam Cinema, Sector 17C',
+      city: 'Chandigarh',
+      state: 'Chandigarh (UT)',
+      pincode: '160017',
+      phone: '+91 98765 10001',
+      geo: { lat: 30.7333, lng: 76.7794 },
     },
     {
-      name: 'Mysuru — City Centre',
-      code: 'MYS',
-      address: 'Sayyaji Rao Road, Mysuru',
-      city: 'Mysuru',
-      state: 'Karnataka',
-      pincode: '570001',
-      phone: '+91 98200 10002',
-      geo: { lat: 12.3052, lng: 76.6552 },
+      name: 'Kharar — Chandigarh University Hub',
+      code: 'KHR',
+      address: 'NH-05 Ludhiana-Chandigarh Highway (Near CU Gate)',
+      city: 'Kharar',
+      state: 'Punjab',
+      pincode: '140413',
+      phone: '+91 98765 10002',
+      geo: { lat: 30.7499, lng: 76.6411 },
     },
   ]);
-  console.log('  ✓ 2 locations');
+  console.log('  ✓ 2 locations (Chandigarh & Kharar - CU Hub)');
 
   // ── Staff & customers ────────────────────────────────────────────────────────
   const owner = await makeUser({
@@ -184,27 +184,27 @@ async function seed() {
     role: C.ROLES.OWNER,
     password: config.owner.password,
   });
-  const managerBlr = await makeUser({
+  const managerChd = await makeUser({
     name: 'Priya Nair', email: 'priya.manager@driveeasy.example', phone: '+91 90000 00002',
-    role: C.ROLES.MANAGER, assignedLocation: blr._id, password: 'Manager@12345',
+    role: C.ROLES.MANAGER, assignedLocation: chd._id, password: 'Manager@12345',
   });
-  const managerMys = await makeUser({
+  const managerKhr = await makeUser({
     name: 'Rohan Gupta', email: 'rohan.manager@driveeasy.example', phone: '+91 90000 00003',
-    role: C.ROLES.MANAGER, assignedLocation: mys._id, password: 'Manager@12345',
+    role: C.ROLES.MANAGER, assignedLocation: khr._id, password: 'Manager@12345',
   });
-  const staffBlr = await makeUser({
+  const staffChd = await makeUser({
     name: 'Sana Khan', email: 'sana.staff@driveeasy.example', phone: '+91 90000 00004',
-    role: C.ROLES.STAFF, assignedLocation: blr._id, password: 'Staff@12345',
+    role: C.ROLES.STAFF, assignedLocation: chd._id, password: 'Staff@12345',
   });
   const accountant = await makeUser({
     name: 'Vikram Rao', email: 'vikram.accounts@driveeasy.example', phone: '+91 90000 00005',
     role: C.ROLES.ACCOUNTANT, password: 'Accounts@12345',
   });
 
-  blr.manager = managerBlr._id;
-  mys.manager = managerMys._id;
-  await blr.save();
-  await mys.save();
+  chd.manager = managerChd._id;
+  khr.manager = managerKhr._id;
+  await chd.save();
+  await khr.save();
 
   const customers = await Promise.all(
     [
@@ -231,30 +231,29 @@ async function seed() {
   console.log('  ✓ 5 add-ons');
 
   // ── Coupons ──────────────────────────────────────────────────────────────────
-  const [weekend10] = await Coupon.create([
+  const [cu10] = await Coupon.create([
+    { code: 'CU10', type: C.COUPON_TYPE.PERCENTAGE, value: 10, maximumDiscount: 1500, minimumRental: 1500, startDate: atDays(-30), endDate: atDays(90), active: true },
     { code: 'WEEKEND10', type: C.COUPON_TYPE.PERCENTAGE, value: 10, maximumDiscount: 1500, minimumRental: 2000, startDate: atDays(-30), endDate: atDays(60), active: true },
-    { code: 'FLAT500', type: C.COUPON_TYPE.FIXED, value: 500, minimumRental: 3000, startDate: atDays(-30), endDate: atDays(60), usageLimit: 100, active: true },
-    { code: 'FESTIVE15', type: C.COUPON_TYPE.PERCENTAGE, value: 15, maximumDiscount: 2500, startDate: atDays(-5), endDate: atDays(45), active: true },
   ]);
-  console.log('  ✓ 3 coupons');
+  console.log('  ✓ 2 coupons (including CU10 for Chandigarh University students)');
 
   // ── Fleet ────────────────────────────────────────────────────────────────────
   const V = C.VEHICLE_TYPE;
   const T = C.TRANSMISSION;
   const F = C.FUEL_TYPE;
   const fleetSpec = [
-    ['Maruti Suzuki', 'Swift', 'VXI', 2022, 'KA01AB1234', V.HATCHBACK, T.MANUAL, F.PETROL, 5, 2, 1800, 11000, 42000, 5000, blr],
-    ['Hyundai', 'i20', 'Asta', 2023, 'KA01AB2345', V.HATCHBACK, T.MANUAL, F.PETROL, 5, 2, 2000, 12500, 46000, 5000, blr],
-    ['Honda', 'City', 'ZX', 2023, 'KA01CD3456', V.SEDAN, T.AUTOMATIC, F.PETROL, 5, 3, 3200, 20000, 74000, 8000, blr],
-    ['Hyundai', 'Verna', 'SX', 2022, 'KA01CD4567', V.SEDAN, T.AUTOMATIC, F.DIESEL, 5, 3, 3400, 21000, 78000, 8000, blr],
-    ['Toyota', 'Innova Crysta', 'GX', 2023, 'KA01EF5678', V.MUV, T.MANUAL, F.DIESEL, 7, 4, 4800, 30000, 110000, 10000, blr],
-    ['Mahindra', 'Thar', 'LX', 2023, 'KA01EF6789', V.SUV, T.AUTOMATIC, F.DIESEL, 4, 2, 4200, 26000, 96000, 12000, blr],
-    ['Tata', 'Nexon EV', 'Max', 2024, 'KA09GH1234', V.SUV, T.AUTOMATIC, F.ELECTRIC, 5, 3, 3600, 22000, 82000, 8000, mys],
-    ['Maruti Suzuki', 'Baleno', 'Zeta', 2022, 'KA09GH2345', V.HATCHBACK, T.MANUAL, F.PETROL, 5, 2, 1900, 11800, 44000, 5000, mys],
-    ['Kia', 'Seltos', 'HTX', 2023, 'KA09IJ3456', V.SUV, T.AUTOMATIC, F.PETROL, 5, 3, 3800, 23500, 88000, 9000, mys],
-    ['Toyota', 'Fortuner', 'Legender', 2023, 'KA09IJ4567', V.SUV, T.AUTOMATIC, F.DIESEL, 7, 4, 7500, 47000, 175000, 20000, mys],
-    ['Maruti Suzuki', 'Ertiga', 'ZXI', 2022, 'KA09KL5678', V.MUV, T.MANUAL, F.CNG, 7, 3, 2600, 16000, 60000, 7000, mys],
-    ['BMW', '3 Series', '330i', 2023, 'KA09KL6789', V.LUXURY, T.AUTOMATIC, F.PETROL, 5, 3, 12000, 78000, 290000, 40000, mys],
+    ['Maruti Suzuki', 'Swift', 'VXI', 2023, 'CH01AB1234', V.HATCHBACK, T.MANUAL, F.PETROL, 5, 2, 1800, 11000, 42000, 5000, chd],
+    ['Hyundai', 'i20', 'Asta', 2023, 'CH01AB2345', V.HATCHBACK, T.MANUAL, F.PETROL, 5, 2, 2000, 12500, 46000, 5000, chd],
+    ['Honda', 'City', 'ZX', 2024, 'CH01CD3456', V.SEDAN, T.AUTOMATIC, F.PETROL, 5, 3, 3200, 20000, 74000, 8000, chd],
+    ['Hyundai', 'Verna', 'SX', 2023, 'CH01CD4567', V.SEDAN, T.AUTOMATIC, F.DIESEL, 5, 3, 3400, 21000, 78000, 8000, chd],
+    ['Toyota', 'Innova Crysta', 'GX', 2023, 'CH01EF5678', V.MUV, T.MANUAL, F.DIESEL, 7, 4, 4800, 30000, 110000, 10000, chd],
+    ['Mahindra', 'Thar', 'LX 4x4', 2023, 'PB65EF6789', V.SUV, T.AUTOMATIC, F.DIESEL, 4, 2, 4200, 26000, 96000, 10000, khr],
+    ['Tata', 'Nexon EV', 'Max', 2024, 'PB65GH1234', V.SUV, T.AUTOMATIC, F.ELECTRIC, 5, 3, 3200, 20000, 72000, 8000, khr],
+    ['Maruti Suzuki', 'Baleno', 'Zeta', 2023, 'PB65GH2345', V.HATCHBACK, T.MANUAL, F.PETROL, 5, 2, 1900, 11800, 44000, 5000, khr],
+    ['Hyundai', 'Creta', 'SX (O)', 2023, 'PB65IJ3456', V.SUV, T.AUTOMATIC, F.DIESEL, 5, 3, 3800, 24000, 88000, 8000, khr],
+    ['Mahindra', 'Scorpio-N', 'Z8L', 2024, 'PB65IJ4567', V.SUV, T.MANUAL, F.DIESEL, 7, 4, 4500, 28000, 105000, 10000, khr],
+    ['Maruti Suzuki', 'Ertiga', 'ZXI', 2023, 'PB65KL5678', V.MUV, T.MANUAL, F.CNG, 7, 3, 2600, 16000, 60000, 7000, khr],
+    ['BMW', '3 Series', '330Li', 2024, 'CH01KL6789', V.LUXURY, T.AUTOMATIC, F.PETROL, 5, 3, 9500, 60000, 220000, 25000, chd],
   ];
 
   const vehicles = await Vehicle.create(
