@@ -51,7 +51,7 @@ export default function Documents() {
     const newDoc = {
       id: 'doc_' + Date.now(),
       type: docType,
-      title: docType === 'DRIVING_LICENCE' ? 'Driving License' : 'Govt Photo ID',
+      title: docType === 'DRIVING_LICENCE' ? 'Driving License' : docType === 'CU_STUDENT_ID' ? 'CU Student ID' : 'Govt Photo ID',
       documentNumber: docNumber,
       status: 'PENDING',
       uploadedAt: new Date().toISOString().split('T')[0],
@@ -111,6 +111,7 @@ export default function Documents() {
                   >
                     <option value="DRIVING_LICENCE">Driving License</option>
                     <option value="GOVERNMENT_ID">Govt Photo ID (Aadhaar / Passport)</option>
+                    <option value="CU_STUDENT_ID">Chandigarh University Student ID</option>
                   </select>
                 </div>
                 <div>

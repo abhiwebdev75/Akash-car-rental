@@ -221,7 +221,7 @@ export default function FleetManagement() {
                     {v.registrationNumber}
                   </td>
                   <td className="p-4 font-semibold text-slate-700">
-                    {loc ? loc.name : 'Indiranagar'}
+                    {loc ? loc.name : 'Chandigarh'}
                   </td>
                   <td className="p-4 font-bold text-slate-900">
                     {formatCurrency(v.pricing?.daily)} / day

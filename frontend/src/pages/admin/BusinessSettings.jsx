@@ -10,7 +10,7 @@ export default function BusinessSettings() {
     phone: '+91 98200 10000',
     email: 'hello@driveeasy.example',
     whatsapp: '+91 98200 10000',
-    address: '100 Feet Road, Indiranagar, Bengaluru, Karnataka 560038',
+    address: 'Near Neelam Cinema, Sector 17C, Chandigarh (UT) 160017',
     currency: 'INR',
     taxRate: 18,
     turnoverBufferMinutes: 30,

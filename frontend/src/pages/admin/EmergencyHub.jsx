@@ -12,7 +12,7 @@ export default function EmergencyHub() {
       phone: '+91 90000 10001',
       vehicle: 'Hyundai Creta SX (KA01EF7890)',
       type: 'FLAT_TYRE',
-      description: 'Right rear tyre puncture near Mandya toll gate on Bengaluru-Mysuru Expressway.',
+      description: 'Right rear tyre puncture near Pinjore toll gate on Chandigarh-Shimla Highway.',
       status: 'OPEN',
       createdAt: '15 mins ago',
     },

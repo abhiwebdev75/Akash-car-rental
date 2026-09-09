@@ -53,7 +53,7 @@ export default function Contact() {
                 <span>24x7 Roadside Recovery Helpline</span>
               </div>
               <p className="text-slate-300">
-                On-call breakdown recovery and replacement vehicle assistance across Karnataka:
+                On-call breakdown recovery and replacement vehicle assistance across Punjab, Chandigarh & Himachal:
               </p>
               <p className="font-mono text-base font-black text-white">+91 98200 10000</p>
             </div>

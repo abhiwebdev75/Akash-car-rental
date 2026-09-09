@@ -141,7 +141,7 @@ async function seed() {
   SETTINGS.phone = '+91 98200 10000';
   SETTINGS.email = 'hello@driveeasy.example';
   SETTINGS.whatsapp = '+91 98200 10000';
-  SETTINGS.address = '3rd Floor, Orchid Plaza, Bengaluru, Karnataka';
+  SETTINGS.address = 'Near Neelam Cinema, Sector 17C, Chandigarh (UT) 160017';
   SETTINGS.currency = 'INR';
   SETTINGS.taxRate = 0.18;
   SETTINGS.policies.terms = 'Renter must hold a valid driving licence held for at least 1 year.';
@@ -233,9 +233,8 @@ async function seed() {
   // ── Coupons ──────────────────────────────────────────────────────────────────
   const [cu10] = await Coupon.create([
     { code: 'CU10', type: C.COUPON_TYPE.PERCENTAGE, value: 10, maximumDiscount: 1500, minimumRental: 1500, startDate: atDays(-30), endDate: atDays(90), active: true },
-    { code: 'WEEKEND10', type: C.COUPON_TYPE.PERCENTAGE, value: 10, maximumDiscount: 1500, minimumRental: 2000, startDate: atDays(-30), endDate: atDays(60), active: true },
   ]);
-  console.log('  ✓ 2 coupons (including CU10 for Chandigarh University students)');
+  console.log('  ✓ 1 coupon (CU10 — 10% for Chandigarh University students)');
 
   // ── Fleet ────────────────────────────────────────────────────────────────────
   const V = C.VEHICLE_TYPE;

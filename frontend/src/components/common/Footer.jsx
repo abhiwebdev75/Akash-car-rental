@@ -32,7 +32,7 @@ export default function Footer() {
             </div>
             <div>
               <h4 className="font-semibold text-white text-sm">24/7 Roadside Assistance</h4>
-              <p className="text-xs text-slate-400 mt-0.5">Dedicated breakdown support across Karnataka highways</p>
+              <p className="text-xs text-slate-400 mt-0.5">Dedicated breakdown support across Punjab, Chandigarh & Himachal highways</p>
             </div>
           </div>
         </div>
@@ -50,7 +50,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Premium self-drive car rentals in Bengaluru & Mysuru. Well-maintained hatchbacks, sedans, SUVs, and luxury cars with doorstep delivery and fast digital check-in.
+              Premium self-drive car rentals in Chandigarh & Kharar. Well-maintained hatchbacks, sedans, SUVs, and luxury cars with doorstep delivery and fast digital check-in.
             </p>
             <div className="pt-2 text-xs text-slate-500">
               Operated by Akash Car Rental Pvt. Ltd.
@@ -127,7 +127,7 @@ export default function Footer() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-3 text-slate-400">
                 <MapPin className="w-5 h-5 text-brand-400 shrink-0 mt-0.5" />
-                <span>100 Feet Rd, Indiranagar, Bengaluru, KA 560038</span>
+                <span>Sector 17C, Near Neelam Cinema, Chandigarh (UT) 160017</span>
               </li>
               <li className="flex items-center gap-3 text-slate-400">
                 <Phone className="w-5 h-5 text-brand-400 shrink-0" />

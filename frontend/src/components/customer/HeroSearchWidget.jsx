@@ -17,7 +17,7 @@ export default function HeroSearchWidget({ initialValues = {}, onSearch }) {
   fourDaysLater.setDate(fourDaysLater.getDate() + 4);
   const defaultReturnDate = fourDaysLater.toISOString().split('T')[0];
 
-  const [locationId, setLocationId] = useState(initialValues.locationId || 'loc_blr_1');
+  const [locationId, setLocationId] = useState(initialValues.locationId || 'loc_chd_1');
   const [pickupDate, setPickupDate] = useState(initialValues.pickupDate || defaultPickupDate);
   const [pickupTime, setPickupTime] = useState(initialValues.pickupTime || '10:00');
   const [returnDate, setReturnDate] = useState(initialValues.returnDate || defaultReturnDate);

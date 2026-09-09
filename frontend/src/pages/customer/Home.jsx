@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import HeroSearchWidget from '../../components/customer/HeroSearchWidget';
 import VehicleCard from '../../components/customer/VehicleCard';
-import { mockVehicles, mockCustomerReviews } from '../../api/mockData';
+import { mockVehicles, mockCustomerReviews, mockStudentGetaways } from '../../api/mockData';
 import {
   ShieldCheck,
   Zap,
@@ -14,6 +14,9 @@ import {
   Tag,
   PhoneCall,
   Car,
+  GraduationCap,
+  MapPin,
+  Navigation,
 } from 'lucide-react';
 
 export default function Home() {
@@ -45,7 +48,7 @@ export default function Home() {
           <div className="text-center max-w-3xl mx-auto mb-10">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-brand-300 mb-6">
               <Sparkles className="w-3.5 h-3.5 text-accent-400" />
-              <span>Bengaluru & Mysuru’s Most Trusted Self-Drive Car Rental</span>
+              <span>Chandigarh & Kharar's Most Trusted Self-Drive Car Rental</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
@@ -56,7 +59,7 @@ export default function Home() {
             </h1>
 
             <p className="mt-5 text-base sm:text-lg text-slate-300 leading-relaxed font-normal">
-              Book sanitized, fully-insured self-drive hatchbacks, sedans, SUVs, and luxury vehicles. Zero paperwork, transparent rates, and instant digital check-in.
+              Book sanitized, fully-insured self-drive hatchbacks, sedans, SUVs, and luxury vehicles. Zero paperwork, transparent rates, and instant digital check-in across Chandigarh & Kharar.
             </p>
           </div>
 
@@ -67,24 +70,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── ACTIVE PROMOS BANNER ───────────────────────────────── */}
+      {/* ── CU STUDENT PROMO BANNER ───────────────────────────── */}
       <section className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-slate-950 py-3.5 px-4 shadow-inner">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-center">
           <div className="flex items-center gap-1.5">
-            <Tag className="w-4 h-4 text-slate-950" />
-            <span>SPECIAL OFFER: Use code</span>
+            <GraduationCap className="w-4 h-4 text-slate-950" />
+            <span>CU STUDENTS: Use code</span>
             <span className="px-2 py-0.5 bg-slate-950 text-amber-300 rounded font-mono tracking-wider">
-              WEEKEND10
+              CU10
             </span>
-            <span>for 10% off up to ₹1,500!</span>
+            <span>for 10% off (up to ₹1,500) on all rentals!</span>
           </div>
           <span className="hidden sm:inline opacity-40">•</span>
           <div className="flex items-center gap-1.5">
-            <span>Or code</span>
-            <span className="px-2 py-0.5 bg-slate-950 text-amber-300 rounded font-mono tracking-wider">
-              FLAT500
-            </span>
-            <span>for flat ₹500 discount on bookings above ₹3,000</span>
+            <Navigation className="w-3.5 h-3.5" />
+            <span>Doorstep handover at CU Main Gate, Kharar</span>
           </div>
         </div>
       </section>
@@ -101,7 +101,7 @@ export default function Home() {
                 Explore Vehicles Available Today
               </h2>
               <p className="text-sm text-slate-500 mt-2">
-                Well-maintained, high-efficiency models ready for city drives and highway road trips.
+                Well-maintained, high-efficiency models ready for city drives and Himalayan road trips.
               </p>
             </div>
 
@@ -142,8 +142,62 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── WHY CHOOSE US ─────────────────────────────────────── */}
+      {/* ── CU STUDENT ROAD TRIPS ─────────────────────────────── */}
       <section className="py-20 bg-white border-y border-slate-200/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-xs font-bold uppercase tracking-widest text-brand-600">
+              Weekend Getaway Ideas
+            </span>
+            <h2 className="text-3xl font-extrabold text-slate-900 mt-1">
+              Popular Road Trips from Chandigarh University
+            </h2>
+            <p className="text-sm text-slate-500 mt-2">
+              Grab your friends, pick up a car from our Kharar CU Hub, and hit the Himachal highways.
+              Use code <span className="font-mono font-bold text-brand-600">CU10</span> for 10% off!
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {mockStudentGetaways.map((trip) => (
+              <div
+                key={trip.id}
+                className="rounded-3xl overflow-hidden bg-slate-50 border border-slate-200/80 hover:shadow-xl hover:border-brand-200 transition-all group"
+              >
+                <div className="aspect-[16/10] overflow-hidden">
+                  <img
+                    src={trip.image}
+                    alt={trip.destination}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-6 space-y-3">
+                  <h3 className="text-lg font-bold text-slate-900">{trip.destination}</h3>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-brand-500" />
+                      {trip.distance}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-brand-500" />
+                      {trip.driveTime}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">{trip.description}</p>
+                  <div className="pt-2">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Recommended:</span>
+                    <span className="ml-1.5 text-xs font-bold text-brand-600">{trip.recommendedCar}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── WHY CHOOSE US ─────────────────────────────────────── */}
+      <section className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs font-bold uppercase tracking-widest text-brand-600">
@@ -158,7 +212,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200/80 hover:border-brand-300 transition-all">
+            <div className="p-8 rounded-3xl bg-white border border-slate-200/80 hover:border-brand-300 transition-all">
               <div className="w-14 h-14 rounded-2xl bg-brand-500/10 text-brand-600 flex items-center justify-center mb-6">
                 <ShieldCheck className="w-7 h-7" />
               </div>
@@ -168,7 +222,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200/80 hover:border-brand-300 transition-all">
+            <div className="p-8 rounded-3xl bg-white border border-slate-200/80 hover:border-brand-300 transition-all">
               <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-6">
                 <Clock className="w-7 h-7" />
               </div>
@@ -178,13 +232,13 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200/80 hover:border-brand-300 transition-all">
+            <div className="p-8 rounded-3xl bg-white border border-slate-200/80 hover:border-brand-300 transition-all">
               <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center mb-6">
                 <Zap className="w-7 h-7" />
               </div>
               <h3 className="text-xl font-bold text-slate-900">24/7 Roadside Assistance</h3>
               <p className="text-sm text-slate-600 mt-3 leading-relaxed">
-                Whether you encounter a flat tyre on the Bengaluru-Mysuru Expressway or require emergency jump-start, our roadside recovery team is just one SOS click away.
+                Whether you encounter a flat tyre on the Chandigarh-Shimla Highway or require emergency jump-start, our roadside recovery team is just one SOS click away.
               </p>
             </div>
           </div>
@@ -208,7 +262,7 @@ export default function Home() {
               <span className="text-5xl font-black text-slate-700 mb-4">01</span>
               <h3 className="text-lg font-bold text-white mb-2">Select Dates & Vehicle</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Choose your pickup hub (Indiranagar or Mysuru), travel dates, and pick from our diverse lineup of hatchback, sedan, or SUV models.
+                Choose your pickup hub (Chandigarh Sector 17 or Kharar CU Gate), travel dates, and pick from our diverse lineup of hatchback, sedan, or SUV models.
               </p>
             </div>
 
@@ -216,7 +270,7 @@ export default function Home() {
               <span className="text-5xl font-black text-slate-700 mb-4">02</span>
               <h3 className="text-lg font-bold text-white mb-2">Verify Driving License</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Upload a clear photo of your Indian Driving License and Govt ID for instant verification by our automated document engine.
+                Upload a clear photo of your Indian Driving License and Govt ID (or CU Student ID) for instant verification by our automated document engine.
               </p>
             </div>
 
@@ -224,7 +278,7 @@ export default function Home() {
               <span className="text-5xl font-black text-slate-700 mb-4">03</span>
               <h3 className="text-lg font-bold text-white mb-2">Drive with Peace of Mind</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Pick up keys at our hub or opt for doorstep delivery. Enjoy unlimited miles of scenic Karnataka highways with 24/7 support.
+                Pick up keys at our hub or get doorstep delivery at CU Main Gate. Enjoy scenic Himachal highways with 24/7 support.
               </p>
             </div>
           </div>
@@ -282,7 +336,7 @@ export default function Home() {
               Ready to Hit the Open Road?
             </h2>
             <p className="text-brand-100 text-sm mt-1 max-w-xl">
-              Choose your ideal car today and experience transparent, hassle-free car rental in Karnataka.
+              Choose your ideal car today and experience transparent, hassle-free car rental in Chandigarh & Kharar.
             </p>
           </div>
 
@@ -294,7 +348,7 @@ export default function Home() {
               Browse Full Fleet
             </Link>
             <a
-              href="tel:+919820010000"
+              href="tel:+919876510001"
               className="px-6 py-3.5 rounded-xl bg-brand-800/80 border border-white/20 text-white font-bold text-sm hover:bg-brand-900 transition-all flex items-center gap-2"
             >
               <PhoneCall className="w-4 h-4" />

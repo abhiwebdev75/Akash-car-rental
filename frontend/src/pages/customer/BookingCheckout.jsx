@@ -574,7 +574,7 @@ export default function BookingCheckout() {
                     type="text"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="e.g. WEEKEND10"
+                    placeholder="e.g. CU10"
                     className="flex-1 h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs font-bold text-slate-800 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                   <button

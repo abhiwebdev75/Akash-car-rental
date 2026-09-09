@@ -402,16 +402,6 @@ export const mockCoupons = [
     description: '10% Exclusive Discount for Chandigarh University (CU) Students (Valid Student ID Required)',
     active: true,
   },
-  {
-    _id: 'coup_2',
-    code: 'WEEKEND10',
-    type: 'PERCENTAGE',
-    value: 10,
-    maximumDiscount: 1500,
-    minimumRental: 2000,
-    description: '10% off up to ₹1,500 on weekend rentals',
-    active: true,
-  },
 ];
 
 export const mockDemoUsers = {
