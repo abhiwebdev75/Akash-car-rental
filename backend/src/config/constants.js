@@ -1,0 +1,288 @@
+/**
+ * Single source of truth for every enum / status used across the platform.
+ * Models, services, validation, and RBAC all import from here so values never
+ * drift out of sync.
+ */
+
+const ROLES = Object.freeze({
+  OWNER: 'OWNER',
+  MANAGER: 'MANAGER',
+  STAFF: 'STAFF',
+  ACCOUNTANT: 'ACCOUNTANT',
+  CUSTOMER: 'CUSTOMER',
+});
+
+// Roles that belong to the business (used to distinguish from customers).
+const STAFF_ROLES = Object.freeze([
+  ROLES.OWNER,
+  ROLES.MANAGER,
+  ROLES.STAFF,
+  ROLES.ACCOUNTANT,
+]);
+
+const USER_STATUS = Object.freeze({
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+});
+
+const LOCATION_STATUS = Object.freeze({
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+});
+
+const VEHICLE_STATUS = Object.freeze({
+  AVAILABLE: 'AVAILABLE',
+  BOOKED: 'BOOKED',
+  RENTED: 'RENTED',
+  MAINTENANCE: 'MAINTENANCE',
+  RESERVED: 'RESERVED',
+  INACTIVE: 'INACTIVE',
+});
+
+// Statuses that make a vehicle entirely non-bookable regardless of dates.
+const VEHICLE_NON_BOOKABLE_STATUSES = Object.freeze([
+  VEHICLE_STATUS.MAINTENANCE,
+  VEHICLE_STATUS.INACTIVE,
+]);
+
+const VEHICLE_TYPE = Object.freeze({
+  HATCHBACK: 'HATCHBACK',
+  SEDAN: 'SEDAN',
+  SUV: 'SUV',
+  MUV: 'MUV',
+  LUXURY: 'LUXURY',
+  VAN: 'VAN',
+});
+
+const TRANSMISSION = Object.freeze({
+  MANUAL: 'MANUAL',
+  AUTOMATIC: 'AUTOMATIC',
+});
+
+const FUEL_TYPE = Object.freeze({
+  PETROL: 'PETROL',
+  DIESEL: 'DIESEL',
+  ELECTRIC: 'ELECTRIC',
+  HYBRID: 'HYBRID',
+  CNG: 'CNG',
+});
+
+const BOOKING_STATUS = Object.freeze({
+  PENDING: 'PENDING',
+  CONFIRMED: 'CONFIRMED',
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  NO_SHOW: 'NO_SHOW',
+});
+
+// Bookings in these statuses hold a vehicle and therefore block availability.
+const BLOCKING_BOOKING_STATUSES = Object.freeze([
+  BOOKING_STATUS.PENDING,
+  BOOKING_STATUS.CONFIRMED,
+  BOOKING_STATUS.ACTIVE,
+]);
+
+const PAYMENT_STATUS = Object.freeze({
+  PENDING: 'PENDING',
+  PARTIAL: 'PARTIAL',
+  PAID: 'PAID',
+  REFUNDED: 'REFUNDED',
+  FAILED: 'FAILED',
+});
+
+const PAYMENT_KIND = Object.freeze({
+  RENTAL: 'RENTAL',
+  DEPOSIT: 'DEPOSIT',
+  DEPOSIT_REFUND: 'DEPOSIT_REFUND',
+  EXTRA_CHARGES: 'EXTRA_CHARGES',
+  REFUND: 'REFUND',
+});
+
+const PAYMENT_METHOD = Object.freeze({
+  CASH: 'CASH',
+  CARD: 'CARD',
+  UPI: 'UPI',
+  BANK_TRANSFER: 'BANK_TRANSFER',
+  ONLINE: 'ONLINE',
+  OTHER: 'OTHER',
+});
+
+const INSPECTION_TYPE = Object.freeze({
+  PICKUP: 'PICKUP',
+  RETURN: 'RETURN',
+});
+
+const CONDITION = Object.freeze({
+  EXCELLENT: 'EXCELLENT',
+  GOOD: 'GOOD',
+  FAIR: 'FAIR',
+  POOR: 'POOR',
+});
+
+const PHOTO_CATEGORY = Object.freeze({
+  FRONT: 'FRONT',
+  REAR: 'REAR',
+  LEFT: 'LEFT',
+  RIGHT: 'RIGHT',
+  INTERIOR: 'INTERIOR',
+  DASHBOARD: 'DASHBOARD',
+  DAMAGE: 'DAMAGE',
+});
+
+const DAMAGE_SEVERITY = Object.freeze({
+  MINOR: 'MINOR',
+  MODERATE: 'MODERATE',
+  SEVERE: 'SEVERE',
+});
+
+const DAMAGE_STATUS = Object.freeze({
+  REPORTED: 'REPORTED',
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  REPAIRING: 'REPAIRING',
+  RESOLVED: 'RESOLVED',
+});
+
+const MAINTENANCE_TYPE = Object.freeze({
+  SERVICE: 'SERVICE',
+  OIL_CHANGE: 'OIL_CHANGE',
+  TYRE_REPLACEMENT: 'TYRE_REPLACEMENT',
+  BRAKE_SERVICE: 'BRAKE_SERVICE',
+  REPAIR: 'REPAIR',
+  INSURANCE: 'INSURANCE',
+  PUC: 'PUC',
+  OTHER: 'OTHER',
+});
+
+const MAINTENANCE_STATUS = Object.freeze({
+  SCHEDULED: 'SCHEDULED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+});
+
+// Maintenance in these statuses blocks a vehicle's availability window.
+const BLOCKING_MAINTENANCE_STATUSES = Object.freeze([
+  MAINTENANCE_STATUS.SCHEDULED,
+  MAINTENANCE_STATUS.IN_PROGRESS,
+]);
+
+const DOCUMENT_TYPE = Object.freeze({
+  DRIVING_LICENCE: 'DRIVING_LICENCE',
+  GOVERNMENT_ID: 'GOVERNMENT_ID',
+  OTHER: 'OTHER',
+});
+
+const DOCUMENT_STATUS = Object.freeze({
+  PENDING: 'PENDING',
+  VERIFIED: 'VERIFIED',
+  REJECTED: 'REJECTED',
+});
+
+const COUPON_TYPE = Object.freeze({
+  PERCENTAGE: 'PERCENTAGE',
+  FIXED: 'FIXED',
+});
+
+const ADDON_PRICING_TYPE = Object.freeze({
+  PER_RENTAL: 'PER_RENTAL',
+  PER_DAY: 'PER_DAY',
+  PER_UNIT: 'PER_UNIT',
+});
+
+const REVIEW_STATUS = Object.freeze({
+  VISIBLE: 'VISIBLE',
+  HIDDEN: 'HIDDEN',
+});
+
+const NOTIFICATION_AUDIENCE = Object.freeze({
+  CUSTOMER: 'CUSTOMER',
+  ADMIN: 'ADMIN',
+});
+
+const NOTIFICATION_TYPE = Object.freeze({
+  BOOKING_CONFIRMED: 'BOOKING_CONFIRMED',
+  BOOKING_CANCELLED: 'BOOKING_CANCELLED',
+  PAYMENT_RECEIVED: 'PAYMENT_RECEIVED',
+  PAYMENT_PENDING: 'PAYMENT_PENDING',
+  PICKUP_REMINDER: 'PICKUP_REMINDER',
+  RETURN_REMINDER: 'RETURN_REMINDER',
+  AGREEMENT_GENERATED: 'AGREEMENT_GENERATED',
+  NEW_BOOKING: 'NEW_BOOKING',
+  VEHICLE_RETURN: 'VEHICLE_RETURN',
+  DAMAGE_REPORTED: 'DAMAGE_REPORTED',
+  MAINTENANCE_DUE: 'MAINTENANCE_DUE',
+  INSURANCE_EXPIRY: 'INSURANCE_EXPIRY',
+  PUC_EXPIRY: 'PUC_EXPIRY',
+  EMERGENCY: 'EMERGENCY',
+});
+
+const NOTIFICATION_CHANNEL = Object.freeze({
+  IN_APP: 'IN_APP',
+  EMAIL: 'EMAIL',
+  WHATSAPP: 'WHATSAPP',
+  SMS: 'SMS',
+});
+
+const TRANSFER_STATUS = Object.freeze({
+  PENDING: 'PENDING',
+  IN_TRANSIT: 'IN_TRANSIT',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+});
+
+const EMERGENCY_TYPE = Object.freeze({
+  BREAKDOWN: 'BREAKDOWN',
+  FLAT_TYRE: 'FLAT_TYRE',
+  ACCIDENT: 'ACCIDENT',
+  BATTERY: 'BATTERY',
+  LOCKED_OUT: 'LOCKED_OUT',
+  OTHER: 'OTHER',
+});
+
+const EMERGENCY_STATUS = Object.freeze({
+  OPEN: 'OPEN',
+  ACKNOWLEDGED: 'ACKNOWLEDGED',
+  RESOLVED: 'RESOLVED',
+  CANCELLED: 'CANCELLED',
+});
+
+/** Return the values of an enum object as an array (handy for Mongoose `enum`). */
+const enumValues = (obj) => Object.values(obj);
+
+module.exports = {
+  ROLES,
+  STAFF_ROLES,
+  USER_STATUS,
+  LOCATION_STATUS,
+  VEHICLE_STATUS,
+  VEHICLE_NON_BOOKABLE_STATUSES,
+  VEHICLE_TYPE,
+  TRANSMISSION,
+  FUEL_TYPE,
+  BOOKING_STATUS,
+  BLOCKING_BOOKING_STATUSES,
+  PAYMENT_STATUS,
+  PAYMENT_KIND,
+  PAYMENT_METHOD,
+  INSPECTION_TYPE,
+  CONDITION,
+  PHOTO_CATEGORY,
+  DAMAGE_SEVERITY,
+  DAMAGE_STATUS,
+  MAINTENANCE_TYPE,
+  MAINTENANCE_STATUS,
+  BLOCKING_MAINTENANCE_STATUSES,
+  DOCUMENT_TYPE,
+  DOCUMENT_STATUS,
+  COUPON_TYPE,
+  ADDON_PRICING_TYPE,
+  REVIEW_STATUS,
+  NOTIFICATION_AUDIENCE,
+  NOTIFICATION_TYPE,
+  NOTIFICATION_CHANNEL,
+  TRANSFER_STATUS,
+  EMERGENCY_TYPE,
+  EMERGENCY_STATUS,
+  enumValues,
+};
