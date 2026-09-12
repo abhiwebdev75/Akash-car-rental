@@ -7,6 +7,20 @@ const { sendSuccess, sendCreated } = require('../utils/ApiResponse');
 const ApiError = require('../utils/ApiError');
 const Location = require('../models/Location');
 const Vehicle = require('../models/Vehicle');
+const { LOCATION_STATUS } = require('../config/constants');
+
+/**
+ * Public: active locations for the customer booking widget. Returns only
+ * customer-safe fields (no manager/internal data) so the storefront can offer a
+ * location dropdown without authentication.
+ */
+const listPublic = asyncHandler(async (_req, res) => {
+  const locations = await Location.find({ status: LOCATION_STATUS.ACTIVE })
+    .select('name city state address phone geo')
+    .sort({ name: 1 })
+    .lean();
+  return sendSuccess(res, locations);
+});
 
 const list = asyncHandler(async (req, res) => {
   const filter = {};
@@ -53,4 +67,4 @@ const remove = asyncHandler(async (req, res) => {
   return sendSuccess(res, location, { message: 'Location deactivated' });
 });
 
-module.exports = { list, getById, create, update, remove };
+module.exports = { listPublic, list, getById, create, update, remove };

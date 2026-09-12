@@ -1,120 +1,114 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../api/auth.api';
-import { mockDemoUsers } from '../api/mockData';
-import { ROLES, STAFF_ROLES } from '../utils/constants';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { authApi } from '../features/auth/api';
+import { setAccessToken, setUnauthorizedHandler } from '../lib/apiClient';
+import { queryClient } from '../lib/queryClient';
+import { ROLES, STAFF_ROLES } from '../lib/constants';
+
+/**
+ * Authentication state for the whole app.
+ *
+ * On mount we try to restore a session from the httpOnly refresh cookie, so a
+ * page reload keeps the user signed in without ever persisting a token in JS.
+ * `status` is 'loading' until that bootstrap resolves.
+ */
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [status, setStatus] = useState('loading'); // loading | authenticated | unauthenticated
 
-  useEffect(() => {
-    // Check current token
-    const token = localStorage.getItem('token');
-    if (token && !user) {
-      authApi.me()
-        .then((userData) => {
-          if (userData) {
-            setUser(userData);
-            localStorage.setItem('user', JSON.stringify(userData));
-          }
-        })
-        .catch(() => {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setUser(null);
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+  const clearAuth = useCallback(() => {
+    setAccessToken(null);
+    setUser(null);
+    setStatus('unauthenticated');
+    queryClient.clear();
   }, []);
 
-  const login = async (credentials) => {
-    const data = await authApi.login(credentials);
-    if (data && data.user) {
-      setUser(data.user);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      if (data.accessToken) {
-        localStorage.setItem('token', data.accessToken);
+  // Bootstrap the session using the refresh cookie.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const { accessToken } = await authApi.refresh();
+        if (!accessToken) throw new Error('no session');
+        setAccessToken(accessToken);
+        const me = await authApi.me();
+        if (!active) return;
+        setUser(me);
+        setStatus('authenticated');
+      } catch {
+        if (!active) return;
+        setAccessToken(null);
+        setUser(null);
+        setStatus('unauthenticated');
       }
-      return data.user;
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // If a background refresh fails (cookie expired/revoked), drop to logged-out.
+  useEffect(() => {
+    setUnauthorizedHandler(() => clearAuth());
+    return () => setUnauthorizedHandler(null);
+  }, [clearAuth]);
+
+  const login = useCallback(async (credentials) => {
+    const { user: u, accessToken } = await authApi.login(credentials);
+    setAccessToken(accessToken);
+    setUser(u);
+    setStatus('authenticated');
+    return u;
+  }, []);
+
+  const register = useCallback(async (payload) => {
+    const { user: u, accessToken } = await authApi.register(payload);
+    setAccessToken(accessToken);
+    setUser(u);
+    setStatus('authenticated');
+    return u;
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      /* ignore network errors — we clear locally regardless */
     }
-    throw new Error('Invalid login response');
-  };
+    clearAuth();
+  }, [clearAuth]);
 
-  const register = async (userData) => {
-    const data = await authApi.register(userData);
-    if (data && data.user) {
-      setUser(data.user);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      if (data.accessToken) {
-        localStorage.setItem('token', data.accessToken);
-      }
-      return data.user;
-    }
-    throw new Error('Registration failed');
-  };
+  const refreshUser = useCallback(async () => {
+    const me = await authApi.me();
+    setUser(me);
+    return me;
+  }, []);
 
-  const demoLogin = (roleKey) => {
-    const demoUser = mockDemoUsers[roleKey.toLowerCase()];
-    if (demoUser) {
-      setUser(demoUser);
-      localStorage.setItem('user', JSON.stringify(demoUser));
-      localStorage.setItem('token', demoUser.token);
-      return demoUser;
-    }
-  };
-
-  const logout = async () => {
-    await authApi.logout();
-    setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-  };
-
-  const role = user?.role || null;
-  const isAuthenticated = Boolean(user);
-  const isOwner = role === ROLES.OWNER;
-  const isManager = role === ROLES.MANAGER || isOwner;
-  const isStaff = STAFF_ROLES.includes(role);
-  const isAccountant = role === ROLES.ACCOUNTANT || isOwner;
-  const isCustomer = role === ROLES.CUSTOMER;
-  const canAccessAdmin = isStaff;
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        role,
-        loading,
-        isAuthenticated,
-        isOwner,
-        isManager,
-        isStaff,
-        isAccountant,
-        isCustomer,
-        canAccessAdmin,
-        login,
-        register,
-        demoLogin,
-        logout,
-      }}
-    >
-      {!loading && children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      status,
+      isAuthenticated: status === 'authenticated',
+      isLoading: status === 'loading',
+      isStaff: !!user && STAFF_ROLES.includes(user.role),
+      isCustomer: user?.role === ROLES.CUSTOMER,
+      hasRole: (...roles) => !!user && roles.includes(user.role),
+      login,
+      register,
+      logout,
+      refreshUser,
+      setUser,
+    }),
+    [user, status, login, register, logout, refreshUser]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
+  return ctx;
 }
-

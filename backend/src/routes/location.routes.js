@@ -10,6 +10,11 @@ const { authenticate } = require('../middleware/auth.middleware');
 const { requireStaffUp, requireManagerUp } = require('../middleware/rbac.middleware');
 
 const router = express.Router();
+
+// Public: active locations for the customer booking widget (no auth). Declared
+// before the authenticate gate and before "/:id" so it isn't shadowed.
+router.get('/public', controller.listPublic);
+
 router.use(authenticate);
 
 router.get('/', requireStaffUp, controller.list);

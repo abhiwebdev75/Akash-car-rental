@@ -1,134 +1,64 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { ToastProvider } from './context/ToastContext';
-import ProtectedRoute from './components/common/ProtectedRoute';
-import { STAFF_ROLES, ROLES } from './utils/constants';
+import { lazy, Suspense } from 'react';
+import { Route, Routes } from 'react-router-dom';
+import { CustomerLayout } from './components/layout/CustomerLayout';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { ScrollToTop } from './components/ScrollToTop';
+import { RouteProgress } from './components/RouteProgress';
+import { PageLoader } from './components/PageLoader';
 
-// Layouts
-import CustomerLayout from './components/customer/CustomerLayout';
-import AdminLayout from './components/admin/AdminLayout';
-
-// Customer Pages
-import Home from './pages/customer/Home';
-import Fleet from './pages/customer/Fleet';
-import VehicleDetail from './pages/customer/VehicleDetail';
-import Compare from './pages/customer/Compare';
-import BookingCheckout from './pages/customer/BookingCheckout';
-import CustomerDashboard from './pages/customer/CustomerDashboard';
-import Documents from './pages/customer/Documents';
-import Login from './pages/customer/Login';
-import Register from './pages/customer/Register';
-import About from './pages/customer/About';
-import Contact from './pages/customer/Contact';
-import Policies from './pages/customer/Policies';
-
-// Admin Pages
-import AdminDashboard from './pages/admin/AdminDashboard';
-import FleetManagement from './pages/admin/FleetManagement';
-import CalendarView from './pages/admin/CalendarView';
-import BookingsManagement from './pages/admin/BookingsManagement';
-import InspectionsHub from './pages/admin/InspectionsHub';
-import DamageReports from './pages/admin/DamageReports';
-import EmergencyHub from './pages/admin/EmergencyHub';
-import PaymentLedger from './pages/admin/PaymentLedger';
-import MaintenanceHub from './pages/admin/MaintenanceHub';
-import CustomerManagement from './pages/admin/CustomerManagement';
-import CouponManagement from './pages/admin/CouponManagement';
-import ReviewModeration from './pages/admin/ReviewModeration';
-import ReportsAnalytics from './pages/admin/ReportsAnalytics';
-import StaffManagement from './pages/admin/StaffManagement';
-import BusinessSettings from './pages/admin/BusinessSettings';
+// Lazy-load pages so each becomes its own chunk — the landing page stays light
+// and authenticated/booking screens only load when needed.
+const Home = lazy(() => import('./pages/Home'));
+const Cars = lazy(() => import('./pages/Cars'));
+const VehicleDetail = lazy(() => import('./pages/VehicleDetail'));
+const Compare = lazy(() => import('./pages/Compare'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Booking = lazy(() => import('./pages/Booking'));
+const BookingConfirmed = lazy(() => import('./pages/BookingConfirmed'));
+const Account = lazy(() => import('./pages/Account'));
+const AccountBooking = lazy(() => import('./pages/AccountBooking'));
+const Profile = lazy(() => import('./pages/Profile'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ToastProvider>
-        <AuthProvider>
-          <Routes>
-            {/* ── Public & Customer Portal ────────────────────────── */}
-            <Route element={<CustomerLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/cars" element={<Fleet />} />
-              <Route path="/cars/:id" element={<VehicleDetail />} />
-              <Route path="/compare" element={<Compare />} />
-              <Route path="/booking" element={<BookingCheckout />} />
+    <>
+      <ScrollToTop />
+      <RouteProgress />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route element={<CustomerLayout />}>
+            {/* Public */}
+            <Route index element={<Home />} />
+            <Route path="cars" element={<Cars />} />
+            <Route path="cars/:id" element={<VehicleDetail />} />
+            <Route path="compare" element={<Compare />} />
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route path="about" element={<About />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="terms" element={<Terms />} />
+            <Route path="privacy" element={<Privacy />} />
 
-              {/* Protected Customer Routes */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <CustomerDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/documents"
-                element={
-                  <ProtectedRoute>
-                    <Documents />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/policies" element={<Policies />} />
+            {/* Authenticated (booking is login-gated — even /quote requires auth) */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="book/:vehicleId" element={<Booking />} />
+              <Route path="booking/confirmed/:id" element={<BookingConfirmed />} />
+              <Route path="account" element={<Account />} />
+              <Route path="account/bookings/:id" element={<AccountBooking />} />
+              <Route path="account/profile" element={<Profile />} />
             </Route>
 
-            {/* Auth Pages without full layout */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-
-            {/* ── Admin Backoffice Hub ────────────────────────────── */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={STAFF_ROLES}>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="fleet" element={<FleetManagement />} />
-              <Route path="calendar" element={<CalendarView />} />
-              <Route path="bookings" element={<BookingsManagement />} />
-              <Route path="inspections" element={<InspectionsHub />} />
-              <Route path="damages" element={<DamageReports />} />
-              <Route path="emergencies" element={<EmergencyHub />} />
-              <Route path="payments" element={<PaymentLedger />} />
-              <Route path="maintenance" element={<MaintenanceHub />} />
-              <Route path="customers" element={<CustomerManagement />} />
-              <Route path="coupons" element={<CouponManagement />} />
-              <Route path="reviews" element={<ReviewModeration />} />
-              <Route path="reports" element={<ReportsAnalytics />} />
-
-              {/* Owner Only Routes */}
-              <Route
-                path="staff"
-                element={
-                  <ProtectedRoute allowedRoles={[ROLES.OWNER]}>
-                    <StaffManagement />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="settings"
-                element={
-                  <ProtectedRoute allowedRoles={[ROLES.OWNER]}>
-                    <BusinessSettings />
-                  </ProtectedRoute>
-                }
-              />
-            </Route>
-
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </AuthProvider>
-      </ToastProvider>
-    </BrowserRouter>
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </>
   );
 }
-

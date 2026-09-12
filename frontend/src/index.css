@@ -2,41 +2,83 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Semantic colour tokens as space-separated RGB channels, so Tailwind's
+  `rgb(var(--x) / <alpha-value>)` colours resolve correctly. Light is the
+  default; `.dark` flips the same variables — components rarely need `dark:`.
+*/
 @layer base {
+  :root {
+    --bg: 245 247 250;
+    --surface: 255 255 255;
+    --card: 255 255 255;
+    --border: 226 231 238;
+    --text: 30 45 66;
+    --text-strong: 14 32 54;
+    --muted: 100 116 139;
+  }
+
+  .dark {
+    --bg: 10 21 36;
+    --surface: 15 30 51;
+    --card: 18 35 60;
+    --border: 34 54 82;
+    --text: 209 219 233;
+    --text-strong: 240 245 251;
+    --muted: 148 163 184;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply min-h-screen flex flex-col font-sans;
+    @apply bg-paper text-fg font-sans antialiased;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display text-fg-strong;
+    text-wrap: balance;
+  }
+
+  /* One consistent, visible keyboard-focus treatment across the app. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-signal/70;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: rgb(var(--text-strong));
+    color: rgb(var(--bg));
+  }
+
+  /* Themed scrollbar so dark mode doesn't get a bright track. */
+  * {
+    scrollbar-color: rgb(var(--border)) transparent;
   }
 }
 
-/* Custom subtle scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Honour reduced-motion preferences for all non-essential animation. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
+@layer components {
+  /* Page-width wrapper used by layouts and sections. */
+  .container-page {
+    @apply mx-auto w-full max-w-content px-4 sm:px-6 lg:px-8;
+  }
 }
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Glass effect utilities */
-.glass {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.glass-dark {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-

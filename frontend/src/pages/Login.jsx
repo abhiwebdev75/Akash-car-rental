@@ -1,0 +1,105 @@
+import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { LogIn } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Logo } from '../components/Logo';
+import { ROUTES } from '../lib/constants';
+import { extractApiError } from '../lib/apiClient';
+
+export default function Login() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [serverError, setServerError] = useState(null);
+
+  const from = location.state?.from?.pathname
+    ? `${location.state.from.pathname}${location.state.from.search || ''}`
+    : ROUTES.account;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({ defaultValues: { email: '', password: '' } });
+
+  const onSubmit = async (values) => {
+    setServerError(null);
+    try {
+      await login(values);
+      navigate(from, { replace: true });
+    } catch (err) {
+      setServerError(extractApiError(err).message);
+    }
+  };
+
+  return (
+    <div className="container-page flex min-h-[calc(100vh-4rem)] items-center justify-center py-12">
+      <div className="w-full max-w-md">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <Logo showWordmark={false} />
+          <h1 className="mt-4 font-display text-2xl font-bold text-fg-strong">Welcome back</h1>
+          <p className="mt-1.5 text-sm text-muted">Log in to manage your bookings.</p>
+        </div>
+
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4 rounded-2xl border border-hair bg-card p-6 shadow-card sm:p-8"
+          noValidate
+        >
+          {serverError && (
+            <div
+              role="alert"
+              className="rounded-lg border border-red-500/30 bg-red-500/8 px-3.5 py-2.5 text-sm text-red-700 dark:text-red-300"
+            >
+              {serverError}
+            </div>
+          )}
+
+          <Input
+            type="email"
+            label="Email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            error={errors.email?.message}
+            {...register('email', {
+              required: 'Email is required',
+              pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email' },
+            })}
+          />
+          <Input
+            type="password"
+            label="Password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            error={errors.password?.message}
+            {...register('password', { required: 'Password is required' })}
+          />
+
+          <Button
+            type="submit"
+            fullWidth
+            size="lg"
+            loading={isSubmitting}
+            leftIcon={!isSubmitting ? <LogIn className="h-4 w-4" /> : undefined}
+          >
+            Log in
+          </Button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-muted">
+          New here?{' '}
+          <Link
+            to={ROUTES.register}
+            state={location.state}
+            className="font-semibold text-signal-700 hover:underline dark:text-signal-400"
+          >
+            Create an account
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
