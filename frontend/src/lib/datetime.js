@@ -35,3 +35,13 @@ export function isValidRange(startDate, startTime, endDate, endTime) {
   if (!s || !e) return false;
   return new Date(e).getTime() > new Date(s).getTime();
 }
+
+/** 'HH:mm' → a friendly 12-hour clock label, e.g. '10:00' → '10:00 AM'. */
+export function formatClock(hhmm) {
+  if (!hhmm || typeof hhmm !== 'string') return '';
+  const [h, m] = hhmm.split(':').map(Number);
+  if (Number.isNaN(h)) return hhmm;
+  const period = h < 12 ? 'AM' : 'PM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m || 0).padStart(2, '0')} ${period}`;
+}
