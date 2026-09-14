@@ -7,6 +7,7 @@ import {
   Check,
   Fuel,
   Gauge,
+  GitCompare,
   MapPin,
   MessageCircle,
   Route,
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useVehicle } from '../features/vehicles/hooks';
 import { useSettings } from '../features/settings/hooks';
+import { useCompare } from '../lib/useCompare';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Rating } from '../components/ui/Rating';
@@ -38,6 +40,7 @@ export default function VehicleDetail() {
   const [searchParams] = useSearchParams();
   const { data: settings } = useSettings();
   const { data: vehicle, isLoading, isError, error, refetch } = useVehicle(id);
+  const { has, toggle, isFull } = useCompare();
 
   const [activeImg, setActiveImg] = useState(0);
   const currency = settings?.currency || 'INR';
@@ -57,6 +60,9 @@ export default function VehicleDetail() {
   const loc = vehicle.locationId;
   const reviews = vehicle.reviews || [];
   const bookSearch = searchParams.toString();
+
+  const inCompare = has(vehicle._id);
+  const compareBlocked = isFull && !inCompare;
 
   const specs = [
     { icon: Users, label: 'Seats', value: `${vehicle.seats}` },
@@ -256,6 +262,31 @@ export default function VehicleDetail() {
                 Ask on WhatsApp
               </Button>
             )}
+
+            <Button
+              type="button"
+              onClick={() => toggle(vehicle._id)}
+              variant="ghost"
+              fullWidth
+              className="mt-3"
+              disabled={compareBlocked}
+              leftIcon={
+                inCompare ? <Check className="h-4 w-4" /> : <GitCompare className="h-4 w-4" />
+              }
+            >
+              {inCompare ? 'Added to compare' : 'Add to compare'}
+            </Button>
+            {inCompare ? (
+              <p className="mt-2 text-center text-xs text-muted">
+                <Link to={ROUTES.compare} className="font-medium text-route-700 hover:underline dark:text-route-300">
+                  Go to compare →
+                </Link>
+              </p>
+            ) : compareBlocked ? (
+              <p className="mt-2 text-center text-xs text-muted">
+                Compare list is full (max 4). Remove one first.
+              </p>
+            ) : null}
 
             <p className="mt-4 text-center text-xs text-muted">
               You won’t be charged yet — you’ll see an itemised quote first.

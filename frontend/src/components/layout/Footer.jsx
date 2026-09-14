@@ -11,9 +11,7 @@ export function Footer() {
   const shortName = name.split(' ')[0];
 
   const addr = settings?.address;
-  const addressLine = addr
-    ? [addr.line1, addr.city, addr.state, addr.pincode].filter(Boolean).join(', ')
-    : null;
+  const addressLine = typeof addr === 'string' ? addr.trim() : null;
 
   return (
     <footer className="mt-20 border-t border-hair bg-surface">

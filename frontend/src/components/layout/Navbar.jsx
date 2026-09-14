@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../features/settings/hooks';
+import { useCompare } from '../../lib/useCompare';
 import { ROUTES } from '../../lib/constants';
 import { initials } from '../../lib/formatters';
 import { cn } from '../../lib/cn';
@@ -28,6 +29,7 @@ const NAV_LINKS = [
 export function Navbar() {
   const { data: settings } = useSettings();
   const { isAuthenticated, user, logout } = useAuth();
+  const { count: compareCount } = useCompare();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -75,7 +77,14 @@ export function Navbar() {
             <NavLink key={link.to} to={link.to} className={linkClass}>
               {({ isActive }) => (
                 <>
-                  {link.label}
+                  <span className="inline-flex items-center gap-1.5">
+                    {link.label}
+                    {link.to === ROUTES.compare && compareCount > 0 && (
+                      <span className="inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-signal px-1 text-[10px] font-bold leading-none text-ink-900">
+                        {compareCount}
+                      </span>
+                    )}
+                  </span>
                   {isActive && (
                     <span className="absolute -bottom-[21px] left-0 h-0.5 w-full bg-signal" />
                   )}
@@ -169,14 +178,19 @@ export function Navbar() {
                 to={link.to}
                 className={({ isActive }) =>
                   cn(
-                    'rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                    'flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-ink-900/5 text-fg-strong dark:bg-white/5'
                       : 'text-muted hover:bg-ink-900/5 dark:hover:bg-white/5'
                   )
                 }
               >
-                {link.label}
+                <span>{link.label}</span>
+                {link.to === ROUTES.compare && compareCount > 0 && (
+                  <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-signal px-1 text-xs font-bold leading-none text-ink-900">
+                    {compareCount}
+                  </span>
+                )}
               </NavLink>
             ))}
 
