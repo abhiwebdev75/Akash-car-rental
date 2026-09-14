@@ -1,41 +1,85 @@
 import { useState } from 'react';
-import { Mail, MapPin, MessageCircle, Navigation, Phone, Send } from 'lucide-react';
+
+import {
+  Mail,
+  MapPin,
+  MessageCircle,
+  Navigation,
+  Phone,
+  Send,
+} from 'lucide-react';
+
 import { PageHero } from '../components/PageHero';
-import { Button, Input, Textarea, Card, CardBody } from '../components/ui';
+import {
+  Button,
+  Input,
+  Textarea,
+  Card,
+  CardBody,
+} from '../components/ui';
+
 import { useSettings } from '../features/settings/hooks';
 import { useLocations } from '../features/locations/hooks';
 
-// Build a Google Maps link from geo coords when present, else from the address text.
+const WEB3FORMS_ACCESS_KEY = 'ad01d63d-6949-46cd-8919-e4a5bc9c5a64';
+
 function directionsUrl(loc) {
   if (loc?.geo?.lat != null && loc?.geo?.lng != null) {
     return `https://www.google.com/maps/search/?api=1&query=${loc.geo.lat},${loc.geo.lng}`;
   }
-  const q = [loc?.name, loc?.address, loc?.city, loc?.state].filter(Boolean).join(', ');
-  return q ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}` : null;
+
+  const q = [
+    loc?.name,
+    loc?.address,
+    loc?.city,
+    loc?.state,
+    loc?.pincode,
+  ]
+    .filter(Boolean)
+    .join(', ');
+
+  return q
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`
+    : null;
 }
 
 export default function Contact() {
   const { data: settings } = useSettings();
   const { data: locations } = useLocations();
 
-  const businessName = settings?.businessName || 'Akash Car Rental';
-  const phone = settings?.phone;
-  const email = settings?.email;
-  const whatsapp = settings?.whatsapp;
-  const address = typeof settings?.address === 'string' ? settings.address.trim() : '';
+  const businessName =
+    settings?.businessName || 'Akash Car Rental';
 
-  const waLink = whatsapp
-    ? `https://wa.me/${String(whatsapp).replace(/[^\d]/g, '')}`
-    : null;
+  const email = settings?.email;
+
+  // Business contact numbers from your Instagram profile
+  const phone1 = '7876573193';
+  const phone2 = '9816523804';
+
+  const whatsapp = '7876573193';
+
+  const address =
+    typeof settings?.address === 'string' &&
+    settings.address.trim()
+      ? settings.address.trim()
+      : 'Near Bhagomajra Toll Plaza, Kharar, Punjab';
+
+  const waLink = `https://wa.me/${whatsapp}`;
 
   const channels = [
-    phone && {
+    {
       icon: Phone,
       label: 'Call us',
-      value: phone,
-      href: `tel:${String(phone).replace(/\s+/g, '')}`,
+      value: phone1,
+      href: `tel:${phone1}`,
     },
-    waLink && {
+    {
+      icon: Phone,
+      label: 'Call us',
+      value: phone2,
+      href: `tel:${phone2}`,
+    },
+    {
       icon: MessageCircle,
       label: 'WhatsApp',
       value: whatsapp,
@@ -60,55 +104,76 @@ export default function Contact() {
 
       <div className="container-page py-14 sm:py-16">
         <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-14">
-          {/* Left: channels + address */}
+
+          {/* Contact details */}
           <div>
             <h2 className="font-display text-xl font-bold text-fg-strong sm:text-2xl">
               Get in touch
             </h2>
+
             <p className="mt-1.5 text-sm text-muted">
-              Our team typically replies the same day.
+              Call or WhatsApp us for bookings and enquiries.
             </p>
 
             <div className="mt-6 space-y-3">
-              {channels.map(({ icon: Icon, label, value, href, external }) => (
-                <a
-                  key={label}
-                  href={href}
-                  {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  className="flex items-center gap-4 rounded-xl border border-hair bg-card p-4 transition-colors hover:border-route/40 hover:bg-surface"
-                >
-                  <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-route/12 text-route">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-xs font-medium uppercase tracking-wide text-muted">
-                      {label}
+              {channels.map(
+                ({ icon: Icon, label, value, href, external }) => (
+                  <a
+                    key={`${label}-${value}`}
+                    href={href}
+                    {...(external
+                      ? {
+                          target: '_blank',
+                          rel: 'noopener noreferrer',
+                        }
+                      : {})}
+                    className="flex items-center gap-4 rounded-xl border border-hair bg-card p-4 transition-colors hover:border-route/40 hover:bg-surface"
+                  >
+                    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-route/12 text-route">
+                      <Icon className="h-5 w-5" />
                     </span>
-                    <span className="block truncate font-semibold text-fg-strong">{value}</span>
-                  </span>
-                </a>
-              ))}
+
+                    <span className="min-w-0">
+                      <span className="block text-xs font-medium uppercase tracking-wide text-muted">
+                        {label}
+                      </span>
+
+                      <span className="block truncate font-semibold text-fg-strong">
+                        {value}
+                      </span>
+                    </span>
+                  </a>
+                )
+              )}
             </div>
 
-            {address && (
-              <div className="mt-6 rounded-xl border border-hair bg-surface p-5">
-                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                  <MapPin className="h-4 w-4 text-route" />
-                  Head office
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-fg">{address}</p>
-              </div>
-            )}
-
-            {channels.length === 0 && !address && (
-              <p className="mt-6 rounded-xl border border-hair bg-surface p-5 text-sm text-muted">
-                Contact details are being updated — please check back shortly.
+            {/* Address */}
+            <div className="mt-6 rounded-xl border border-hair bg-surface p-5">
+              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                <MapPin className="h-4 w-4 text-route" />
+                Pickup Location
               </p>
-            )}
+
+              <p className="mt-2 text-sm leading-relaxed text-fg">
+                {address}
+              </p>
+
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=Bhagomajra+Toll+Plaza,+Kharar,+Punjab"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-signal-700 transition-colors hover:text-signal-600 dark:text-signal-400"
+              >
+                <Navigation className="h-4 w-4" />
+                Get directions
+              </a>
+            </div>
           </div>
 
-          {/* Right: enquiry form (composes an email; no data leaves the browser until you send) */}
-          <EnquiryForm email={email} businessName={businessName} />
+          {/* Enquiry form */}
+          <EnquiryForm
+            businessName={businessName}
+          />
         </div>
 
         {/* Branches */}
@@ -117,22 +182,35 @@ export default function Contact() {
             <h2 className="font-display text-xl font-bold text-fg-strong sm:text-2xl">
               Our locations
             </h2>
-            <p className="mt-1.5 text-sm text-muted">Pick up and drop off at any of our branches.</p>
+
+            <p className="mt-1.5 text-sm text-muted">
+              Pick up and drop off at any of our branches.
+            </p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {locations.map((loc) => {
                 const dir = directionsUrl(loc);
+
                 return (
                   <Card key={loc._id}>
                     <CardBody>
-                      <h3 className="font-semibold text-fg-strong">{loc.name}</h3>
+                      <h3 className="font-semibold text-fg-strong">
+                        {loc.name}
+                      </h3>
+
                       {(loc.address || loc.city) && (
                         <p className="mt-1.5 text-sm leading-relaxed text-muted">
-                          {[loc.address, loc.city, loc.state, loc.pincode]
+                          {[
+                            loc.address,
+                            loc.city,
+                            loc.state,
+                            loc.pincode,
+                          ]
                             .filter(Boolean)
                             .join(', ')}
                         </p>
                       )}
+
                       {loc.phone && (
                         <a
                           href={`tel:${String(loc.phone).replace(/\s+/g, '')}`}
@@ -142,6 +220,7 @@ export default function Contact() {
                           {loc.phone}
                         </a>
                       )}
+
                       {dir && (
                         <a
                           href={dir}
@@ -165,53 +244,137 @@ export default function Contact() {
   );
 }
 
-function EnquiryForm({ email, businessName }) {
-  const [form, setForm] = useState({ name: '', from: '', subject: '', message: '' });
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const disabled = !email || !form.message.trim();
+function EnquiryForm({ businessName }) {
+  const [form, setForm] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    if (disabled) return;
-    const subject = form.subject.trim() || `Enquiry for ${businessName}`;
-    const bodyLines = [
-      form.message.trim(),
-      '',
-      '—',
-      form.name.trim() && `Name: ${form.name.trim()}`,
-      form.from.trim() && `Contact: ${form.from.trim()}`,
-    ].filter(Boolean);
-    const href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
-      bodyLines.join('\n')
-    )}`;
-    window.location.href = href;
+  const [status, setStatus] = useState('');
+
+  const set = (key) => (event) => {
+    setForm((prev) => ({
+      ...prev,
+      [key]: event.target.value,
+    }));
+  };
+
+  const onSubmit = async (event) => {
+    event.preventDefault();
+
+    setStatus('Sending...');
+
+    try {
+      const formData = new FormData();
+
+      formData.append(
+        'access_key',
+        WEB3FORMS_ACCESS_KEY
+      );
+
+      formData.append(
+        'subject',
+        form.subject.trim() ||
+          `New enquiry - ${businessName}`
+      );
+
+      formData.append('from_name', businessName);
+
+      formData.append('name', form.name.trim());
+      formData.append('phone', form.phone.trim());
+      formData.append('email', form.email.trim());
+      formData.append('message', form.message.trim());
+
+      const response = await fetch(
+        'https://api.web3forms.com/submit',
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStatus(
+          'Message sent successfully! We will contact you soon.'
+        );
+
+        setForm({
+          name: '',
+          phone: '',
+          email: '',
+          subject: '',
+          message: '',
+        });
+      } else {
+        setStatus(
+          'Unable to send message. Please try WhatsApp or call us.'
+        );
+      }
+    } catch (error) {
+      console.error(error);
+
+      setStatus(
+        'Something went wrong. Please try WhatsApp or call us.'
+      );
+    }
   };
 
   return (
     <Card>
       <CardBody className="sm:p-7">
+
         <div className="mb-5 flex items-center gap-2">
           <Send className="h-5 w-5 text-signal-600" />
-          <h2 className="font-display text-lg font-semibold text-fg-strong">Send us a message</h2>
+
+          <h2 className="font-display text-lg font-semibold text-fg-strong">
+            Send us a message
+          </h2>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <form
+          onSubmit={onSubmit}
+          className="space-y-4"
+        >
           <div className="grid gap-4 sm:grid-cols-2">
-            <Input label="Your name" value={form.name} onChange={set('name')} />
+
             <Input
-              label="Phone or email"
-              value={form.from}
-              onChange={set('from')}
-              placeholder="How we reach you back"
+              label="Your name"
+              value={form.name}
+              onChange={set('name')}
+              required
             />
+
+            <Input
+              label="Phone number"
+              value={form.phone}
+              onChange={set('phone')}
+              placeholder="9876543210"
+              required
+            />
+
           </div>
+
+          <Input
+            label="Email"
+            type="email"
+            value={form.email}
+            onChange={set('email')}
+            placeholder="you@example.com"
+          />
+
           <Input
             label="Subject"
             value={form.subject}
             onChange={set('subject')}
-            placeholder="What’s this about?"
+            placeholder="Car rental enquiry"
           />
+
           <Textarea
             label="Message"
             required
@@ -219,18 +382,36 @@ function EnquiryForm({ email, businessName }) {
             maxLength={2000}
             value={form.message}
             onChange={set('message')}
-            placeholder="Tell us how we can help…"
+            placeholder="Tell us about your booking requirements..."
           />
 
-          <Button type="submit" disabled={disabled} rightIcon={<Send className="h-4 w-4" />}>
-            Compose email
+          <Button
+            type="submit"
+            disabled={
+              !form.name.trim() ||
+              !form.phone.trim() ||
+              !form.message.trim() ||
+              status === 'Sending...'
+            }
+            rightIcon={<Send className="h-4 w-4" />}
+          >
+            {status === 'Sending...'
+              ? 'Sending...'
+              : 'Send Enquiry'}
           </Button>
 
+          {status && (
+            <p className="text-sm font-medium text-muted">
+              {status}
+            </p>
+          )}
+
           <p className="text-xs leading-relaxed text-muted">
-            {email
-              ? 'This opens your email app with the message ready to send — nothing is sent automatically.'
-              : 'Email isn’t configured yet — please use the phone or WhatsApp options.'}
+            Your enquiry will be sent securely to the
+            business email configured in your Web3Forms
+            account.
           </p>
+
         </form>
       </CardBody>
     </Card>
