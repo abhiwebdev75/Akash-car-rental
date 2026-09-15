@@ -8,12 +8,14 @@ export const bookingsApi = {
   },
 
   // Create a booking (server re-checks availability + pricing inside a transaction).
+  // Staff pass customerId + locationId; customers book for themselves.
   async create(payload) {
     const { data } = await apiClient.post('/bookings', payload);
     return data.data;
   },
 
-  // The signed-in customer's bookings (backend scopes to the caller). Returns { items, meta }.
+  // Bookings list (backend scopes by role: customers see their own, staff see
+  // all / their location). Returns { items, meta }.
   async list(params = {}) {
     const { data } = await apiClient.get('/bookings', { params });
     return { items: data.data, meta: data.meta };
@@ -26,6 +28,22 @@ export const bookingsApi = {
 
   async cancel(id, reason) {
     const { data } = await apiClient.post(`/bookings/${id}/cancel`, { reason });
+    return data.data;
+  },
+
+  // ── Staff lifecycle transitions (staffUp) ──────────────────────────────────
+  async confirm(id) {
+    const { data } = await apiClient.post(`/bookings/${id}/confirm`);
+    return data.data;
+  },
+
+  async activate(id) {
+    const { data } = await apiClient.post(`/bookings/${id}/activate`);
+    return data.data;
+  },
+
+  async complete(id) {
+    const { data } = await apiClient.post(`/bookings/${id}/complete`);
     return data.data;
   },
 };

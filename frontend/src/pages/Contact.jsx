@@ -401,7 +401,18 @@ function EnquiryForm({ businessName }) {
           </Button>
 
           {status && (
-            <p className="text-sm font-medium text-muted">
+            <p
+              className={[
+                'text-sm font-medium',
+                status.startsWith('Message sent')
+                  ? 'text-route-700 dark:text-route-300'
+                  : status === 'Sending...'
+                    ? 'text-muted'
+                    : 'text-red-600 dark:text-red-400',
+              ].join(' ')}
+              role="status"
+              aria-live="polite"
+            >
               {status}
             </p>
           )}

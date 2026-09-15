@@ -1,44 +1,56 @@
-import React from 'react';
-import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { cn } from '../../lib/cn';
+import { Skeleton } from '../ui';
 
-export default function StatCard({ title, value, icon: Icon, trend, trendLabel, color = 'brand' }) {
-  const colorMap = {
-    brand: 'bg-brand-50 text-brand-600 border-brand-100',
-    emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-    amber: 'bg-amber-50 text-amber-600 border-amber-100',
-    indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-    rose: 'bg-rose-50 text-rose-600 border-rose-100',
-  };
+// Accent tints for the icon chip, keyed to a semantic tone.
+const TONES = {
+  neutral: 'bg-ink-900/5 text-fg dark:bg-white/5',
+  signal: 'bg-signal/15 text-signal-800 dark:bg-signal/20 dark:text-signal-300',
+  route: 'bg-route/15 text-route-700 dark:bg-route/20 dark:text-route-300',
+  info: 'bg-blue-500/12 text-blue-700 dark:bg-blue-400/15 dark:text-blue-300',
+  success: 'bg-route/15 text-route-700 dark:bg-route/20 dark:text-route-300',
+  warning: 'bg-signal/18 text-signal-800 dark:bg-signal/20 dark:text-signal-300',
+  danger: 'bg-red-500/12 text-red-700 dark:bg-red-400/15 dark:text-red-300',
+};
+
+/**
+ * A single dashboard metric tile. `value` is the headline figure (already
+ * formatted by the caller — money/dates come pre-computed from the backend).
+ * Renders as a Link when `to` is set so tiles can deep-link into a filtered list.
+ */
+export function StatCard({ label, value, icon: Icon, hint, tone = 'neutral', loading = false, to }) {
+  const Tag = to ? Link : 'div';
+  const tagProps = to ? { to } : {};
 
   return (
-    <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{title}</p>
-          <h3 className="text-2xl font-black text-slate-900 mt-2 tracking-tight">{value}</h3>
-        </div>
-        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${colorMap[color] || colorMap.brand}`}>
-          <Icon className="w-6 h-6" />
-        </div>
-      </div>
-
-      {(trend !== undefined || trendLabel) && (
-        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs font-semibold">
-          {trend > 0 ? (
-            <span className="text-emerald-600 flex items-center gap-0.5">
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              +{trend}%
-            </span>
-          ) : trend < 0 ? (
-            <span className="text-rose-600 flex items-center gap-0.5">
-              <ArrowDownRight className="w-3.5 h-3.5" />
-              {trend}%
-            </span>
-          ) : null}
-          {trendLabel && <span className="text-slate-400 font-normal">{trendLabel}</span>}
-        </div>
+    <Tag
+      {...tagProps}
+      className={cn(
+        'flex items-start justify-between gap-4 rounded-xl border border-hair bg-card p-5',
+        to && 'transition-all duration-200 hover:-translate-y-0.5 hover:border-ink-200 hover:shadow-card dark:hover:border-ink-500'
       )}
-    </div>
+    >
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-muted">{label}</p>
+        {loading ? (
+          <Skeleton className="mt-2 h-8 w-24" />
+        ) : (
+          <p className="mt-1 font-display text-2xl font-bold tracking-tight text-fg-strong">
+            {value}
+          </p>
+        )}
+        {hint && !loading && <p className="mt-1 text-xs text-muted">{hint}</p>}
+      </div>
+      {Icon && (
+        <span
+          className={cn(
+            'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg',
+            TONES[tone] || TONES.neutral
+          )}
+        >
+          <Icon className="h-5 w-5" />
+        </span>
+      )}
+    </Tag>
   );
 }
-
