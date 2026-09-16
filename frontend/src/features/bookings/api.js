@@ -46,4 +46,11 @@ export const bookingsApi = {
     const { data } = await apiClient.post(`/bookings/${id}/complete`);
     return data.data;
   },
+
+  // Calendar: bookings whose range intersects [from, to] (staffUp). Returns a
+  // lean array with light vehicle info; location-scoped staff are auto-scoped.
+  async calendar(params = {}) {
+    const { data } = await apiClient.get('/bookings/calendar', { params });
+    return data.data;
+  },
 };

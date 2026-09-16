@@ -12,7 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useAdminBookings } from '../../features/bookings/hooks';
 import { useRevenueReport, useOutstandingReport } from '../../features/reports/hooks';
 import { useSettings } from '../../features/settings/hooks';
-import { BOOKING_STATUS, FINANCE_ROLES, ROUTES } from '../../lib/constants';
+import { BOOKING_STATUS, FINANCE_ROLES, MANAGER_UP, ROUTES } from '../../lib/constants';
 import { formatMoney, formatDateRange, toDateInputValue, pluralize } from '../../lib/formatters';
 import { vehicleTitle } from '../../features/vehicles/display';
 import { AdminPageHeader } from '../../components/admin/AdminPageHeader';
@@ -60,6 +60,7 @@ export default function Dashboard() {
   const { data: settings } = useSettings();
   const currency = settings?.currency || 'INR';
   const isFinance = hasRole(...FINANCE_ROLES);
+  const canCreate = hasRole(...MANAGER_UP);
 
   const firstName = user?.name?.split(' ')[0] || 'there';
 
@@ -124,9 +125,11 @@ export default function Dashboard() {
         title={`Welcome back, ${firstName}`}
         description="Here's what's happening across the business today."
         actions={
-          <Button to={ROUTES.adminBookingNew} leftIcon={<Plus className="h-4 w-4" />}>
-            New booking
-          </Button>
+          canCreate ? (
+            <Button to={ROUTES.adminBookingNew} leftIcon={<Plus className="h-4 w-4" />}>
+              New booking
+            </Button>
+          ) : null
         }
       />
 

@@ -61,6 +61,20 @@ export function useAdminBookings(params = {}) {
   });
 }
 
+// Calendar agenda — bookings intersecting [from, to]. Only runs once the range
+// is present. Kept lightly cached since upcoming pickups/returns change often.
+export function useCalendar(params = {}, { enabled = true } = {}) {
+  const clean = cleanParams(params);
+  const ready = enabled && !!clean.from && !!clean.to;
+  return useQuery({
+    queryKey: ['bookings', 'calendar', clean],
+    queryFn: () => bookingsApi.calendar(clean),
+    enabled: ready,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
+  });
+}
+
 // Shared invalidation for lifecycle actions (each returns the updated booking).
 function useBookingAction(mutationFn) {
   const qc = useQueryClient();
