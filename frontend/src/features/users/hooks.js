@@ -27,7 +27,17 @@ export function useCreateStaff() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
   });
 }
+export function useUpdateProfile() {
+  const qc = useQueryClient();
 
+  return useMutation({
+    mutationFn: (payload) => usersApi.updateProfile(payload),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      qc.setQueryData(['users', 'me'], data);
+    },
+  });
+}
 export function useUpdateUser() {
   const qc = useQueryClient();
   return useMutation({
