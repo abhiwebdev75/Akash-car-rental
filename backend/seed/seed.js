@@ -52,7 +52,8 @@ async function wipe() {
 }
 
 async function makeUser({ name, email, phone, role, assignedLocation, password }) {
-  const u = new User({ name, email, phone, role, assignedLocation });
+  // Seeded accounts are pre-verified so the email-OTP gate never locks them out.
+  const u = new User({ name, email, phone, role, assignedLocation, emailVerifiedAt: new Date() });
   await u.setPassword(password);
   await u.save();
   return u;

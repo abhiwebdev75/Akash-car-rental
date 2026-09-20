@@ -63,8 +63,16 @@ export function AuthProvider({ children }) {
     return u;
   }, []);
 
+  // Registration no longer logs the user in — the account must verify its email
+  // first. Returns { email, requiresVerification } so the caller can route to
+  // the verify screen.
   const register = useCallback(async (payload) => {
-    const { user: u, accessToken } = await authApi.register(payload);
+    return authApi.register(payload);
+  }, []);
+
+  // Confirming the signup OTP is the first real login: it returns tokens.
+  const verifyEmail = useCallback(async ({ email, code }) => {
+    const { user: u, accessToken } = await authApi.verifyEmail({ email, code });
     setAccessToken(accessToken);
     setUser(u);
     setStatus('authenticated');
@@ -97,11 +105,12 @@ export function AuthProvider({ children }) {
       hasRole: (...roles) => !!user && roles.includes(user.role),
       login,
       register,
+      verifyEmail,
       logout,
       refreshUser,
       setUser,
     }),
-    [user, status, login, register, logout, refreshUser]
+    [user, status, login, register, verifyEmail, logout, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

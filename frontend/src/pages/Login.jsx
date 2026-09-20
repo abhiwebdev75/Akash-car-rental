@@ -14,6 +14,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [serverError, setServerError] = useState(null);
+  const notice = location.state?.notice;
 
   const from = location.state?.from?.pathname
     ? `${location.state.from.pathname}${location.state.from.search || ''}`
@@ -31,7 +32,15 @@ export default function Login() {
       await login(values);
       navigate(from, { replace: true });
     } catch (err) {
-      setServerError(extractApiError(err).message);
+      const parsed = extractApiError(err);
+      // Unverified accounts: the backend has re-sent a code — take them to verify.
+      if (parsed.code === 'EMAIL_NOT_VERIFIED') {
+        navigate(ROUTES.verifyEmail, {
+          state: { email: values.email, from: location.state?.from },
+        });
+        return;
+      }
+      setServerError(parsed.message);
     }
   };
 
@@ -57,6 +66,11 @@ export default function Login() {
               {serverError}
             </div>
           )}
+          {!serverError && notice && (
+            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/8 px-3.5 py-2.5 text-sm text-emerald-700 dark:text-emerald-300">
+              {notice}
+            </div>
+          )}
 
           <Input
             type="email"
@@ -77,6 +91,15 @@ export default function Login() {
             error={errors.password?.message}
             {...register('password', { required: 'Password is required' })}
           />
+
+          <div className="flex justify-end">
+            <Link
+              to={ROUTES.forgotPassword}
+              className="text-sm font-medium text-signal-700 hover:underline dark:text-signal-400"
+            >
+              Forgot password?
+            </Link>
+          </div>
 
           <Button
             type="submit"

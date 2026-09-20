@@ -12,7 +12,11 @@ const { authLimiter } = require('../middleware/rateLimit.middleware');
 const router = express.Router();
 
 router.post('/register', authLimiter, validate(schema.register), controller.register);
+router.post('/verify-email', authLimiter, validate(schema.verifyEmail), controller.verifyEmail);
+router.post('/resend-verification', authLimiter, validate(schema.resendVerification), controller.resendVerification);
 router.post('/login', authLimiter, validate(schema.login), controller.login);
+router.post('/forgot-password', authLimiter, validate(schema.forgotPassword), controller.forgotPassword);
+router.post('/reset-password', authLimiter, validate(schema.resetPassword), controller.resetPassword);
 router.post('/refresh', validate(schema.refresh), controller.refresh);
 router.post('/logout', authenticate, controller.logout);
 router.get('/me', authenticate, controller.me);

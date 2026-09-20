@@ -32,7 +32,11 @@ export default function Register() {
     setServerError(null);
     try {
       await registerUser(payload);
-      navigate(from, { replace: true });
+      // Account created but unverified — send them to enter the emailed code.
+      // Carry the email and the post-login destination through navigation state.
+      navigate(ROUTES.verifyEmail, {
+        state: { email: payload.email, from: location.state?.from },
+      });
     } catch (err) {
       setServerError(extractApiError(err).message);
     }

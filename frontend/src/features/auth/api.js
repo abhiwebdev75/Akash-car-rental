@@ -6,12 +6,33 @@ import { apiClient } from '../../lib/apiClient';
 export const authApi = {
   async register(payload) {
     const { data } = await apiClient.post('/auth/register', payload);
+    return data.data; // { email, requiresVerification } — no tokens yet
+  },
+
+  // Confirm the signup OTP; this is the first login (returns tokens).
+  async verifyEmail(payload) {
+    const { data } = await apiClient.post('/auth/verify-email', payload);
     return data.data; // { user, accessToken, refreshToken }
+  },
+
+  async resendVerification(email) {
+    const { data } = await apiClient.post('/auth/resend-verification', { email });
+    return data;
   },
 
   async login(credentials) {
     const { data } = await apiClient.post('/auth/login', credentials);
     return data.data; // { user, accessToken, refreshToken }
+  },
+
+  async forgotPassword(email) {
+    const { data } = await apiClient.post('/auth/forgot-password', { email });
+    return data;
+  },
+
+  async resetPassword(payload) {
+    const { data } = await apiClient.post('/auth/reset-password', payload);
+    return data;
   },
 
   async me() {

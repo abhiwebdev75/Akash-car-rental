@@ -53,6 +53,7 @@ async function createUser({
   name = 'Test User',
   phone,
   assignedLocation,
+  emailVerified = true, // factory users are created directly (like admin/seed), so verified by default
 } = {}) {
   const user = new User({
     name,
@@ -60,6 +61,7 @@ async function createUser({
     phone: phone || `+1999${String(seq).padStart(7, '0')}`,
     role,
     assignedLocation,
+    emailVerifiedAt: emailVerified ? new Date() : null,
   });
   await user.setPassword(password);
   await user.save();

@@ -62,7 +62,9 @@ const createStaff = asyncHandler(async (req, res) => {
   const exists = await User.findOne({ email: email.toLowerCase() });
   if (exists) throw ApiError.conflict('A user with that email already exists');
 
-  const user = new User({ name, email, phone, role, assignedLocation });
+  // Admin-provisioned accounts are trusted — mark verified so they skip the
+  // email-OTP gate that self-registering customers go through.
+  const user = new User({ name, email, phone, role, assignedLocation, emailVerifiedAt: new Date() });
   await user.setPassword(password);
   await user.save();
   return sendCreated(res, user, { message: 'Staff account created' });

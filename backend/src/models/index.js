@@ -18,6 +18,7 @@ module.exports = {
   Coupon: require('./Coupon'),
   Review: require('./Review'),
   Notification: require('./Notification'),
+  EmailOtp: require('./EmailOtp'),
   VehicleTransfer: require('./VehicleTransfer'),
   EmergencyRequest: require('./EmergencyRequest'),
   Counter: require('./Counter'),
