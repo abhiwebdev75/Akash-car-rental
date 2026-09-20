@@ -10,7 +10,8 @@ const {
   signRefreshToken,
   verifyRefreshToken,
 } = require('../utils/tokens');
-const { ROLES, USER_STATUS } = require('../config/constants');
+const { ROLES, USER_STATUS, OTP_PURPOSE } = require('../config/constants');
+const otpService = require('./otp.service');
 
 /** Sign a new access/refresh pair and persist the refresh-token hash. */
 async function issueTokens(user) {
@@ -22,7 +23,11 @@ async function issueTokens(user) {
   return { accessToken, refreshToken };
 }
 
-/** Register a new CUSTOMER account. Staff accounts are created by admins. */
+/**
+ * Register a new CUSTOMER account. The account is created *unverified* and NO
+ * tokens are issued — the caller must confirm the emailed OTP via verifyEmail
+ * before they can sign in. Staff accounts are created by admins (pre-verified).
+ */
 async function register({ name, email, phone, password }) {
   const existing = await User.findOne({ email: email.toLowerCase() });
   if (existing) throw ApiError.conflict('An account with that email already exists');
@@ -31,11 +36,42 @@ async function register({ name, email, phone, password }) {
   await user.setPassword(password);
   await user.save();
 
-  const tokens = await issueTokens(user);
+  await otpService.generateAndSend({ user, purpose: OTP_PURPOSE.EMAIL_VERIFICATION });
+  // Deliberately no tokens: gate access until the email is verified.
+  return { user, requiresVerification: true };
+}
+
+/**
+ * Confirm a signup OTP. On success the account is marked verified and tokens
+ * are issued (this is effectively the first login).
+ */
+async function verifyEmail({ email, code }) {
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) throw ApiError.badRequest('No account found for that email.');
+  if (user.emailVerifiedAt) {
+    // Already verified — treat as success and just issue tokens.
+    const tokens = await issueTokens(user);
+    return { user, ...tokens };
+  }
+
+  await otpService.verify({ userId: user._id, purpose: OTP_PURPOSE.EMAIL_VERIFICATION, code });
+
+  user.emailVerifiedAt = new Date();
+  const tokens = await issueTokens(user); // saves the user (issueTokens calls save)
   return { user, ...tokens };
 }
 
-/** Verify credentials and issue tokens. */
+/** Re-send a signup verification code (no-op response if already verified). */
+async function resendVerification({ email }) {
+  const user = await User.findOne({ email: email.toLowerCase() });
+  // Don't reveal whether the account exists; silently succeed otherwise.
+  if (user && !user.emailVerifiedAt) {
+    await otpService.generateAndSend({ user, purpose: OTP_PURPOSE.EMAIL_VERIFICATION });
+  }
+  return true;
+}
+
+/** Verify credentials and issue tokens. Unverified customers are blocked. */
 async function login({ email, password }) {
   // passwordHash is select:false, so request it explicitly.
   const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
@@ -48,8 +84,51 @@ async function login({ email, password }) {
     throw ApiError.forbidden('Account is inactive. Contact the administrator.');
   }
 
+  // Only self-registering customers go through email verification; staff
+  // accounts are provisioned pre-verified by admins.
+  if (user.role === ROLES.CUSTOMER && !user.emailVerifiedAt) {
+    // Re-send a code so the client can take them straight to the verify screen.
+    await otpService
+      .generateAndSend({ user, purpose: OTP_PURPOSE.EMAIL_VERIFICATION })
+      .catch(() => {});
+    throw new ApiError(403, 'Please verify your email to continue.', {
+      code: 'EMAIL_NOT_VERIFIED',
+    });
+  }
+
   const tokens = await issueTokens(user);
   return { user, ...tokens };
+}
+
+/**
+ * Start a password reset: email a reset OTP. Always resolves the same way
+ * whether or not the account exists, so we don't leak which emails are
+ * registered.
+ */
+async function forgotPassword({ email }) {
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (user) {
+    await otpService.generateAndSend({ user, purpose: OTP_PURPOSE.PASSWORD_RESET });
+  }
+  return true;
+}
+
+/**
+ * Complete a password reset with a valid OTP. Sets the new password and revokes
+ * any existing sessions (refresh token) so a compromised session can't persist.
+ */
+async function resetPassword({ email, code, newPassword }) {
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) throw ApiError.badRequest('No account found for that email.');
+
+  await otpService.verify({ userId: user._id, purpose: OTP_PURPOSE.PASSWORD_RESET, code });
+
+  await user.setPassword(newPassword);
+  await user.setRefreshToken(null);
+  // A successful reset also proves control of the inbox — treat as verified.
+  if (!user.emailVerifiedAt) user.emailVerifiedAt = new Date();
+  await user.save();
+  return true;
 }
 
 /** Rotate tokens using a valid, non-revoked refresh token. */
@@ -96,4 +175,15 @@ async function changePassword(userId, { currentPassword, newPassword }) {
   return true;
 }
 
-module.exports = { issueTokens, register, login, refresh, logout, changePassword };
+module.exports = {
+  issueTokens,
+  register,
+  verifyEmail,
+  resendVerification,
+  login,
+  refresh,
+  logout,
+  changePassword,
+  forgotPassword,
+  resetPassword,
+};

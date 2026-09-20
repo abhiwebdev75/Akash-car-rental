@@ -46,6 +46,9 @@ const userSchema = new Schema(
       enum: enumValues(USER_STATUS),
       default: USER_STATUS.ACTIVE,
     },
+    // Set the moment a user confirms their email via OTP. Null = unverified.
+    // Staff/seed accounts are created pre-verified so they're never gated.
+    emailVerifiedAt: { type: Date, default: null },
     // Location scoping for MANAGER/STAFF.
     assignedLocation: { type: Schema.Types.ObjectId, ref: 'Location', index: true },
     address: addressSchema,
@@ -81,6 +84,10 @@ userSchema.index({ phone: 1 }, { unique: true, sparse: true });
 
 userSchema.virtual('isStaff').get(function isStaff() {
   return this.role !== ROLES.CUSTOMER;
+});
+
+userSchema.virtual('isEmailVerified').get(function isEmailVerified() {
+  return !!this.emailVerifiedAt;
 });
 
 /** Hash and set the password. Call before save when (re)setting a password. */

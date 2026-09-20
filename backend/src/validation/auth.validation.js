@@ -4,6 +4,10 @@
 const { Joi } = require('./common');
 
 const password = Joi.string().min(8).max(128);
+const otpCode = Joi.string()
+  .trim()
+  .pattern(/^\d{6}$/)
+  .message('Enter the 6-digit code');
 
 const register = {
   body: Joi.object({
@@ -34,4 +38,40 @@ const changePassword = {
   }),
 };
 
-module.exports = { register, login, refresh, changePassword };
+const verifyEmail = {
+  body: Joi.object({
+    email: Joi.string().email().required(),
+    code: otpCode.required(),
+  }),
+};
+
+const resendVerification = {
+  body: Joi.object({
+    email: Joi.string().email().required(),
+  }),
+};
+
+const forgotPassword = {
+  body: Joi.object({
+    email: Joi.string().email().required(),
+  }),
+};
+
+const resetPassword = {
+  body: Joi.object({
+    email: Joi.string().email().required(),
+    code: otpCode.required(),
+    newPassword: password.required(),
+  }),
+};
+
+module.exports = {
+  register,
+  login,
+  refresh,
+  changePassword,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword,
+};

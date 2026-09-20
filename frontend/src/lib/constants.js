@@ -206,6 +206,24 @@ export const MAINTENANCE_STATUS_LABELS = {
 };
 export const MAINTENANCE_STATUS_OPTIONS = toOptions(MAINTENANCE_STATUS_LABELS);
 
+// ── Notifications ──
+// Audience decides which side deep-links point at (admin console vs. account),
+// and `tone` maps to the accent dot in the inbox. `label` is a fallback title.
+export const NOTIFICATION_AUDIENCE = { CUSTOMER: 'CUSTOMER', ADMIN: 'ADMIN' };
+export const NOTIFICATION_TYPE_META = {
+  NEW_BOOKING: { label: 'New booking', tone: 'info' },
+  BOOKING_CONFIRMED: { label: 'Booking confirmed', tone: 'success' },
+  BOOKING_CANCELLED: { label: 'Booking cancelled', tone: 'danger' },
+  PAYMENT_RECEIVED: { label: 'Payment received', tone: 'success' },
+  PAYMENT_PENDING: { label: 'Payment pending', tone: 'warning' },
+  PICKUP_REMINDER: { label: 'Pickup reminder', tone: 'info' },
+  RETURN_REMINDER: { label: 'Return reminder', tone: 'info' },
+  AGREEMENT_GENERATED: { label: 'Agreement ready', tone: 'info' },
+  VEHICLE_RETURN: { label: 'Vehicle returned', tone: 'info' },
+  DAMAGE_REPORTED: { label: 'Damage reported', tone: 'danger' },
+  EMERGENCY: { label: 'Emergency', tone: 'danger' },
+};
+
 // ── Coupons ──
 export const COUPON_TYPE = { PERCENTAGE: 'PERCENTAGE', FIXED: 'FIXED' };
 export const COUPON_TYPE_OPTIONS = [

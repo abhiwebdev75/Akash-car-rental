@@ -61,6 +61,32 @@ const config = {
     name: process.env.OWNER_NAME || 'Business Owner',
   },
 
+  // External notification delivery. Both channels are optional and provider-
+  // agnostic — leave the env vars unset and delivery is simply skipped (in-app
+  // notifications still persist). No SDKs required; delivery uses native fetch.
+  notifications: {
+    // Transactional email via any HTTP JSON API (e.g. Resend, Brevo, Mailgun).
+    // We POST { from, to, subject, text } and send the API key as a Bearer token.
+    email: {
+      apiUrl: process.env.EMAIL_API_URL,
+      apiKey: process.env.EMAIL_API_KEY,
+      from: process.env.EMAIL_FROM || 'no-reply@akashcarrental.com',
+      get enabled() {
+        return Boolean(this.apiUrl && this.apiKey);
+      },
+    },
+    // WhatsApp via Meta's WhatsApp Cloud API (Graph API). Needs a phone-number
+    // id and a permanent token. Sends plain text messages.
+    whatsapp: {
+      phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
+      token: process.env.WHATSAPP_TOKEN,
+      apiVersion: process.env.WHATSAPP_API_VERSION || 'v20.0',
+      get enabled() {
+        return Boolean(this.phoneNumberId && this.token);
+      },
+    },
+  },
+
   uploads: {
     maxBytes: toInt(process.env.MAX_UPLOAD_MB, 8) * 1024 * 1024,
     allowedImageTypes: ['image/jpeg', 'image/png', 'image/webp'],

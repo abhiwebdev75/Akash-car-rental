@@ -6,6 +6,7 @@ import { ROUTES, ROLE_LABELS } from '../../lib/constants';
 import { initials } from '../../lib/formatters';
 import { cn } from '../../lib/cn';
 import { ThemeToggle } from '../ThemeToggle';
+import { NotificationBell } from '../NotificationBell';
 
 /**
  * Sticky admin top bar. Hosts the mobile drawer trigger, the theme toggle, a
@@ -57,6 +58,8 @@ export function AdminHeader({ onMenuClick }) {
           <ExternalLink className="h-4 w-4" />
           View site
         </Link>
+
+        <NotificationBell />
 
         <ThemeToggle />
 

@@ -247,6 +247,13 @@ const EMERGENCY_STATUS = Object.freeze({
   CANCELLED: 'CANCELLED',
 });
 
+// One-time-password purposes. EMAIL_VERIFICATION gates first login after
+// signup; PASSWORD_RESET backs the forgot-password flow.
+const OTP_PURPOSE = Object.freeze({
+  EMAIL_VERIFICATION: 'EMAIL_VERIFICATION',
+  PASSWORD_RESET: 'PASSWORD_RESET',
+});
+
 /** Return the values of an enum object as an array (handy for Mongoose `enum`). */
 const enumValues = (obj) => Object.values(obj);
 
@@ -284,5 +291,6 @@ module.exports = {
   TRANSFER_STATUS,
   EMERGENCY_TYPE,
   EMERGENCY_STATUS,
+  OTP_PURPOSE,
   enumValues,
 };

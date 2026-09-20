@@ -21,9 +21,35 @@ function refreshCookieOptions() {
 }
 
 const register = asyncHandler(async (req, res) => {
-  const { user, accessToken, refreshToken } = await authService.register(req.body);
+  // No tokens yet — the account must verify its email first.
+  const { user } = await authService.register(req.body);
+  return sendCreated(
+    res,
+    { email: user.email, requiresVerification: true },
+    { message: 'Account created. Check your email for a verification code.' }
+  );
+});
+
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { user, accessToken, refreshToken } = await authService.verifyEmail(req.body);
   res.cookie(REFRESH_COOKIE, refreshToken, refreshCookieOptions());
-  return sendCreated(res, { user, accessToken, refreshToken });
+  return sendSuccess(res, { user, accessToken, refreshToken }, { message: 'Email verified' });
+});
+
+const resendVerification = asyncHandler(async (req, res) => {
+  await authService.resendVerification(req.body);
+  return sendSuccess(res, null, { message: 'If the account needs verification, a new code has been sent.' });
+});
+
+const forgotPassword = asyncHandler(async (req, res) => {
+  await authService.forgotPassword(req.body);
+  // Generic message regardless of whether the email exists (no enumeration).
+  return sendSuccess(res, null, { message: 'If that email is registered, a reset code has been sent.' });
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  await authService.resetPassword(req.body);
+  return sendSuccess(res, null, { message: 'Password reset. Please log in with your new password.' });
 });
 
 const login = asyncHandler(async (req, res) => {
@@ -53,4 +79,15 @@ const changePassword = asyncHandler(async (req, res) => {
   return sendSuccess(res, null, { message: 'Password changed. Please log in again.' });
 });
 
-module.exports = { register, login, refresh, logout, me, changePassword };
+module.exports = {
+  register,
+  verifyEmail,
+  resendVerification,
+  login,
+  refresh,
+  logout,
+  me,
+  changePassword,
+  forgotPassword,
+  resetPassword,
+};

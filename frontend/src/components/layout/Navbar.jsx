@@ -17,6 +17,7 @@ import { initials } from '../../lib/formatters';
 import { cn } from '../../lib/cn';
 import { Button } from '../ui/Button';
 import { ThemeToggle } from '../ThemeToggle';
+import { NotificationBell } from '../NotificationBell';
 import { Logo } from '../Logo';
 
 const NAV_LINKS = [
@@ -95,6 +96,8 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-1.5">
+          {isAuthenticated && <NotificationBell />}
+
           <ThemeToggle />
 
           {isAuthenticated ? (
