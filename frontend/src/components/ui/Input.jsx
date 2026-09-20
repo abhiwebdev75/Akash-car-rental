@@ -8,11 +8,19 @@ import { CONTROL_BASE, Field } from './Field';
  * react-hook-form's register() works directly.
  */
 export const Input = forwardRef(function Input(
-  { label, hint, error, required, className, id, type = 'text', leftIcon, ...props },
+  { label, hint, error, required, className, id, type = 'text', leftIcon, onWheel, ...props },
   ref
 ) {
   const autoId = useId();
   const inputId = id || autoId;
+
+  // On number inputs, scrolling the page while the field is focused would
+  // otherwise increment/decrement the value. Blur on wheel so scrolling just
+  // scrolls. Any caller-supplied onWheel still runs.
+  const handleWheel = (e) => {
+    if (type === 'number') e.currentTarget.blur();
+    onWheel?.(e);
+  };
 
   const control = (
     <div className="relative">
@@ -25,6 +33,7 @@ export const Input = forwardRef(function Input(
         id={inputId}
         ref={ref}
         type={type}
+        onWheel={handleWheel}
         aria-invalid={error ? 'true' : undefined}
         className={cn(
           CONTROL_BASE,

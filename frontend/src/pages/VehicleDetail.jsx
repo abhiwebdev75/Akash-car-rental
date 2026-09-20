@@ -305,7 +305,7 @@ function VehicleDetailSkeleton() {
         <div>
           <Skeleton className="aspect-[16/10] w-full rounded-2xl" />
           <Skeleton className="mt-6 h-8 w-2/3" />
-          <div className="mt-6 grid grid-cols-3 gap-4">
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="h-24 rounded-xl" />
             ))}

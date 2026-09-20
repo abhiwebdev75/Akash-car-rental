@@ -4,9 +4,9 @@ import { X } from 'lucide-react';
 import { cn } from '../../lib/cn';
 
 const SIZES = {
-  sm: 'max-w-sm',
-  md: 'max-w-lg',
-  lg: 'max-w-2xl',
+  sm: 'sm:max-w-sm',
+  md: 'sm:max-w-lg',
+  lg: 'sm:max-w-2xl',
 };
 
 /**
@@ -57,27 +57,32 @@ export function Modal({ open, onClose, title, description, size = 'md', children
         aria-label={title}
         tabIndex={-1}
         className={cn(
-          'relative w-full rounded-2xl border border-hair bg-card shadow-pop outline-none animate-scale-in',
+          // Mobile: full-width bottom sheet, rounded only on top, capped at 90%
+          // of the viewport height so it never runs off-screen. Desktop: a
+          // centered, fully-rounded card constrained by SIZES.
+          'relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-t-2xl border border-hair bg-card shadow-pop outline-none animate-scale-in',
+          'sm:max-h-[85vh] sm:rounded-2xl',
           SIZES[size]
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-hair px-5 py-4">
-          <div>
-            {title && <h2 className="text-lg font-semibold text-fg-strong">{title}</h2>}
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-hair px-5 py-4">
+          <div className="min-w-0">
+            {title && <h2 className="text-base font-semibold text-fg-strong sm:text-lg">{title}</h2>}
             {description && <p className="mt-0.5 text-sm text-muted">{description}</p>}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="-mr-1 -mt-1 rounded-lg p-1.5 text-muted transition-colors hover:bg-ink-900/5 hover:text-fg-strong dark:hover:bg-white/5"
+            className="-mr-1 -mt-1 shrink-0 rounded-lg p-1.5 text-muted transition-colors hover:bg-ink-900/5 hover:text-fg-strong dark:hover:bg-white/5"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="px-5 py-4">{children}</div>
+        {/* The body scrolls; header and footer stay pinned. */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
         {footer && (
-          <div className="flex items-center justify-end gap-3 border-t border-hair px-5 py-4">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-hair px-5 py-4">
             {footer}
           </div>
         )}

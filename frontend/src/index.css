@@ -76,6 +76,58 @@
   }
 }
 
+@layer base {
+  /*
+    Number inputs: hide the up/down spinner buttons. Combined with the onWheel
+    guard on the Input component, this stops the value from changing when the
+    user scrolls the page over a focused number field.
+  */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  /*
+    Date / time inputs on iOS Safari: by default the native control ignores our
+    height and vertically-centers its text oddly, so the field looks taller than
+    its siblings and the text sits misaligned. Strip the native appearance and
+    pin the internal date-edit box so these controls match text inputs exactly.
+  */
+  input[type='date'],
+  input[type='time'],
+  input[type='datetime-local'] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 2.75rem; /* = h-11, matches Input/Select */
+    display: flex;
+    align-items: center;
+  }
+  input[type='date']::-webkit-date-and-time-value,
+  input[type='time']::-webkit-date-and-time-value,
+  input[type='datetime-local']::-webkit-date-and-time-value {
+    text-align: left;
+    margin: 0;
+  }
+  /* Keep the native calendar/clock picker icon tappable and theme-legible. */
+  input[type='date']::-webkit-calendar-picker-indicator,
+  input[type='time']::-webkit-calendar-picker-indicator,
+  input[type='datetime-local']::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+  }
+  .dark input[type='date']::-webkit-calendar-picker-indicator,
+  .dark input[type='time']::-webkit-calendar-picker-indicator,
+  .dark input[type='datetime-local']::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.7;
+  }
+}
+
 @layer components {
   /* Page-width wrapper used by layouts and sections. */
   .container-page {
