@@ -512,7 +512,7 @@ function PaymentDialog({ mode, onClose, bookingId, currency, remaining }) {
           onChange={setField('amount')}
           leftIcon={<span className="text-sm">{currency === 'INR' ? '₹' : ''}</span>}
         />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Select label="Type" options={kindOptions} value={form.kind} onChange={setField('kind')} />
           <Select label="Method" options={PAYMENT_METHOD_OPTIONS} value={form.method} onChange={setField('method')} />
         </div>
