@@ -1,212 +1,547 @@
-import React, { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import {
+  Ban,
+  CheckCircle2,
+  PlayCircle,
+  Plus,
+  Wrench,
+} from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
-import { formatCurrency } from '../../utils/formatters';
-import { mockVehicles, mockMaintenanceAlerts } from '../../api/mockData';
-import Modal from '../../components/common/Modal';
-import { Wrench, Plus, AlertTriangle, CheckCircle2, Shield, Calendar } from 'lucide-react';
+import {
+  useMaintenance,
+  useScheduleMaintenance,
+  useStartMaintenance,
+  useCompleteMaintenance,
+  useCancelMaintenance,
+} from '../../features/maintenance/hooks';
+import { useAdminVehicles } from '../../features/vehicles/hooks';
+import { useSettings } from '../../features/settings/hooks';
+import { vehicleTitle } from '../../features/vehicles/display';
+import { extractApiError } from '../../lib/apiClient';
+import {
+  MAINTENANCE_STATUS_META,
+  MAINTENANCE_STATUS_OPTIONS,
+  MAINTENANCE_TYPE_LABELS,
+  MAINTENANCE_TYPE_OPTIONS,
+} from '../../lib/constants';
+import { formatMoney, formatDateTime } from '../../lib/formatters';
+import { AdminPageHeader } from '../../components/admin/AdminPageHeader';
+import { DataTable } from '../../components/admin/DataTable';
+import { ConfirmDialog } from '../../components/admin/ConfirmDialog';
+import { StatCard } from '../../components/admin/StatCard';
+import {
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  Input,
+  Modal,
+  Select,
+  Textarea,
+} from '../../components/ui';
+
+const STATUS_FILTER_OPTIONS = [{ value: '', label: 'All statuses' }, ...MAINTENANCE_STATUS_OPTIONS];
+
+const EMPTY = {
+  vehicleId: '',
+  type: 'SERVICE',
+  description: '',
+  scheduledStart: '',
+  scheduledEnd: '',
+  vendor: '',
+  cost: '',
+  notes: '',
+};
+
+const COMPLETE_EMPTY = { cost: '', odometerAtService: '', notes: '' };
+
+/** Vehicle label from the populated `vehicleId` sub-document. */
+function vehicleLabel(v) {
+  if (!v || typeof v !== 'object') return '—';
+  return vehicleTitle(v) || '—';
+}
 
 export default function MaintenanceHub() {
   const toast = useToast();
-  const [alerts, setAlerts] = useState(mockMaintenanceAlerts);
-  const [modalOpen, setModalOpen] = useState(false);
 
-  const [newMaint, setNewMaint] = useState({
-    vehicleId: mockVehicles[1]._id,
-    type: 'OIL_CHANGE',
-    title: 'Periodic Engine Oil & Filter Change',
-    dueDate: '2026-09-30',
-    cost: 3500,
-  });
+  const { data: settings } = useSettings();
+  const currency = settings?.currency || 'INR';
 
-  const handleAddMaintenance = (e) => {
-    e.preventDefault();
-    const v = mockVehicles.find((veh) => veh._id === newMaint.vehicleId) || mockVehicles[0];
-    const item = {
-      _id: 'maint_' + Date.now(),
-      vehicle: v,
-      type: newMaint.type,
-      title: newMaint.title,
-      dueDate: newMaint.dueDate,
-      cost: Number(newMaint.cost),
-      status: 'SCHEDULED',
-      priority: 'MEDIUM',
-    };
-    setAlerts((prev) => [item, ...prev]);
-    toast.success('Maintenance scheduled! Availability window blocked for this vehicle.');
-    setModalOpen(false);
+  const [status, setStatus] = useState('');
+  const { data: records = [], isLoading, isError } = useMaintenance({ status });
+
+  const [scheduling, setScheduling] = useState(false);
+  const [completing, setCompleting] = useState(null); // record being completed
+  const [toCancel, setToCancel] = useState(null);
+
+  const startMaintenance = useStartMaintenance();
+  const cancelMaintenance = useCancelMaintenance();
+
+  // Counts are for the unfiltered picture, so derive them from the current list
+  // only when no filter is applied; otherwise show the filtered total.
+  const counts = useMemo(() => {
+    const c = { SCHEDULED: 0, IN_PROGRESS: 0, COMPLETED: 0, CANCELLED: 0 };
+    records.forEach((r) => {
+      if (c[r.status] != null) c[r.status] += 1;
+    });
+    return c;
+  }, [records]);
+
+  const totalCost = useMemo(
+    () => records.reduce((sum, r) => sum + (r.status === 'COMPLETED' ? r.cost || 0 : 0), 0),
+    [records]
+  );
+
+  const handleStart = async (record) => {
+    try {
+      await startMaintenance.mutateAsync(record._id);
+      toast.success('Maintenance started — vehicle marked unavailable');
+    } catch (err) {
+      toast.error(extractApiError(err).message);
+    }
   };
 
-  const handleComplete = (id) => {
-    setAlerts((prev) =>
-      prev.map((al) => (al._id === id ? { ...al, status: 'COMPLETED' } : al))
-    );
-    toast.success('Maintenance marked completed! Vehicle released back to available fleet.');
+  const handleCancel = async () => {
+    try {
+      await cancelMaintenance.mutateAsync(toCancel._id);
+      toast.success('Maintenance cancelled');
+      setToCancel(null);
+    } catch (err) {
+      toast.error(extractApiError(err).message);
+    }
   };
+
+  const columns = useMemo(
+    () => [
+      {
+        key: 'vehicle',
+        header: 'Vehicle',
+        render: (r) => (
+          <div className="min-w-0">
+            <p className="truncate font-semibold text-fg-strong">{vehicleLabel(r.vehicleId)}</p>
+            <p className="truncate font-mono text-xs uppercase text-muted">
+              {r.vehicleId?.registrationNumber || ''}
+            </p>
+          </div>
+        ),
+      },
+      {
+        key: 'type',
+        header: 'Type',
+        render: (r) => (
+          <div className="min-w-0">
+            <p className="truncate text-fg">{MAINTENANCE_TYPE_LABELS[r.type] || r.type}</p>
+            {r.description && <p className="truncate text-xs text-muted">{r.description}</p>}
+          </div>
+        ),
+      },
+      {
+        key: 'window',
+        header: 'Window',
+        hideOnMobile: true,
+        render: (r) => (
+          <div className="whitespace-nowrap text-xs text-muted">
+            <p>{r.scheduledStart ? formatDateTime(r.scheduledStart) : '—'}</p>
+            <p>{r.scheduledEnd ? formatDateTime(r.scheduledEnd) : ''}</p>
+          </div>
+        ),
+      },
+      {
+        key: 'vendor',
+        header: 'Vendor',
+        hideOnMobile: true,
+        render: (r) => r.vendor || <span className="text-muted">—</span>,
+      },
+      {
+        key: 'cost',
+        header: 'Cost',
+        align: 'right',
+        hideOnMobile: true,
+        render: (r) =>
+          r.cost ? (
+            <span className="tabular-nums">{formatMoney(r.cost, currency)}</span>
+          ) : (
+            <span className="text-muted">—</span>
+          ),
+      },
+      {
+        key: 'status',
+        header: 'Status',
+        render: (r) => {
+          const meta = MAINTENANCE_STATUS_META[r.status] || { label: r.status, tone: 'neutral' };
+          return (
+            <Badge tone={meta.tone} size="sm" dot>
+              {meta.label}
+            </Badge>
+          );
+        },
+      },
+      {
+        key: 'actions',
+        header: '',
+        align: 'right',
+        render: (r) => {
+          // Mirror the backend guards: COMPLETED is terminal; CANCELLED can't be
+          // restarted from the UI even though the API would allow it.
+          const isOpen = r.status === 'SCHEDULED' || r.status === 'IN_PROGRESS';
+          if (!isOpen) return <span className="text-muted">—</span>;
+          return (
+            <div className="flex items-center justify-end gap-1">
+              {r.status === 'SCHEDULED' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label="Start maintenance"
+                  title="Start"
+                  onClick={() => handleStart(r)}
+                >
+                  <PlayCircle className="h-4 w-4" />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Complete maintenance"
+                title="Complete"
+                onClick={() => setCompleting(r)}
+              >
+                <CheckCircle2 className="h-4 w-4 text-route-600 dark:text-route-300" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Cancel maintenance"
+                title="Cancel"
+                onClick={() => setToCancel(r)}
+              >
+                <Ban className="h-4 w-4 text-red-600 dark:text-red-400" />
+              </Button>
+            </div>
+          );
+        },
+      },
+    ],
+    // handleStart is stable enough for this list; re-create on currency change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [currency]
+  );
 
   return (
-    <div className="p-6 sm:p-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Fleet Maintenance & Compliance
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Track periodic service intervals, oil changes, insurance renewals, and PUC expiry dates.
-          </p>
-        </div>
+    <>
+      <AdminPageHeader
+        title="Maintenance"
+        description="Service windows block the vehicle from being booked for that period."
+        actions={
+          <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setScheduling(true)}>
+            Schedule service
+          </Button>
+        }
+      />
 
-        <button
-          onClick={() => setModalOpen(true)}
-          className="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Schedule Service</span>
-        </button>
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Scheduled" value={counts.SCHEDULED} icon={Wrench} tone="info" loading={isLoading} />
+        <StatCard label="In progress" value={counts.IN_PROGRESS} icon={PlayCircle} tone="warning" loading={isLoading} />
+        <StatCard label="Completed" value={counts.COMPLETED} icon={CheckCircle2} tone="success" loading={isLoading} />
+        <StatCard
+          label="Completed spend"
+          value={formatMoney(totalCost, currency)}
+          icon={Wrench}
+          tone="neutral"
+          loading={isLoading}
+          hint="In the current view"
+        />
       </div>
 
-      {/* Grid of alerts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {alerts.map((al) => (
-          <div
-            key={al._id}
-            className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4"
-          >
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200 uppercase">
-                  {al.type}
-                </span>
-                <span className="text-xs text-slate-400 font-semibold">Due: {al.dueDate}</span>
-              </div>
+      <Card className="mb-6">
+        <CardBody className="flex flex-wrap items-end gap-3">
+          <Select
+            label="Status"
+            options={STATUS_FILTER_OPTIONS}
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="w-auto"
+          />
+        </CardBody>
+      </Card>
 
-              <h3 className="font-extrabold text-slate-900 text-base mt-2">{al.title}</h3>
+      <DataTable
+        columns={columns}
+        rows={records}
+        loading={isLoading}
+        empty={{
+          icon: Wrench,
+          title: isError ? 'Could not load maintenance' : 'Nothing scheduled',
+          description: isError
+            ? 'Something went wrong. Try again in a moment.'
+            : 'Schedule a service to block a vehicle for that window.',
+        }}
+      />
 
-              <div className="flex items-center gap-2 mt-2 text-xs text-slate-600">
-                <span className="font-bold text-slate-900">
-                  {al.vehicle?.make} {al.vehicle?.model}
-                </span>
-                <span className="font-mono text-slate-400 font-semibold">
-                  ({al.vehicle?.registrationNumber})
-                </span>
-              </div>
+      <ScheduleForm open={scheduling} currency={currency} onClose={() => setScheduling(false)} />
 
-              <p className="text-xs font-bold text-slate-800 mt-3">
-                Estimated Cost: {formatCurrency(al.cost)}
-              </p>
-            </div>
+      <CompleteForm
+        key={completing?._id || 'complete-closed'}
+        open={!!completing}
+        record={completing}
+        currency={currency}
+        onClose={() => setCompleting(null)}
+      />
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-              <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  al.status === 'COMPLETED'
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'bg-slate-100 text-slate-700'
-                }`}
-              >
-                {al.status}
-              </span>
-
-              {al.status !== 'COMPLETED' && (
-                <button
-                  onClick={() => handleComplete(al._id)}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 shadow-sm"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Mark Completed</span>
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Schedule Service Modal */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Schedule Vehicle Maintenance">
-        <form onSubmit={handleAddMaintenance} className="space-y-4 text-xs">
-          <div>
-            <label className="font-bold uppercase text-slate-700 block mb-1">Select Vehicle</label>
-            <select
-              value={newMaint.vehicleId}
-              onChange={(e) => setNewMaint({ ...newMaint, vehicleId: e.target.value })}
-              className="w-full h-10 bg-slate-50 border rounded-xl px-3 font-semibold"
-            >
-              {mockVehicles.map((v) => (
-                <option key={v._id} value={v._id}>
-                  {v.make} {v.model} ({v.registrationNumber})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-bold uppercase text-slate-700 block mb-1">Service Type</label>
-              <select
-                value={newMaint.type}
-                onChange={(e) => setNewMaint({ ...newMaint, type: e.target.value })}
-                className="w-full h-10 bg-slate-50 border rounded-xl px-2 font-semibold"
-              >
-                <option value="SERVICE">Scheduled Service</option>
-                <option value="OIL_CHANGE">Oil & Filter Change</option>
-                <option value="TYRE_REPLACEMENT">Tyre Replacement</option>
-                <option value="BRAKE_SERVICE">Brake Service</option>
-                <option value="INSURANCE">Insurance Renewal</option>
-                <option value="PUC">PUC Certificate Renewal</option>
-              </select>
-            </div>
-            <div>
-              <label className="font-bold uppercase text-slate-700 block mb-1">Estimated Cost (₹)</label>
-              <input
-                type="number"
-                value={newMaint.cost}
-                onChange={(e) => setNewMaint({ ...newMaint, cost: e.target.value })}
-                className="w-full h-10 bg-slate-50 border rounded-xl px-3 font-bold"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="font-bold uppercase text-slate-700 block mb-1">Due Date</label>
-            <input
-              type="date"
-              value={newMaint.dueDate}
-              onChange={(e) => setNewMaint({ ...newMaint, dueDate: e.target.value })}
-              className="w-full h-10 bg-slate-50 border rounded-xl px-3 font-bold"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="font-bold uppercase text-slate-700 block mb-1">Task Title / Details</label>
-            <input
-              type="text"
-              value={newMaint.title}
-              onChange={(e) => setNewMaint({ ...newMaint, title: e.target.value })}
-              placeholder="e.g. 20,000 KM Engine Flush & Alignment"
-              className="w-full h-10 bg-slate-50 border rounded-xl px-3 font-semibold"
-              required
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-slate-600 font-bold"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold"
-            >
-              Schedule Maintenance
-            </button>
-          </div>
-        </form>
-      </Modal>
-    </div>
+      <ConfirmDialog
+        open={!!toCancel}
+        onClose={() => setToCancel(null)}
+        onConfirm={handleCancel}
+        loading={cancelMaintenance.isPending}
+        title="Cancel maintenance?"
+        description={
+          toCancel
+            ? `The window for ${vehicleLabel(toCancel.vehicleId)} will be released and the vehicle can be booked again.`
+            : undefined
+        }
+        confirmLabel="Cancel maintenance"
+        cancelLabel="Keep it"
+      />
+    </>
   );
 }
 
+function ScheduleForm({ open, currency, onClose }) {
+  const toast = useToast();
+  const schedule = useScheduleMaintenance();
+
+  // Vehicles for the picker. Generous limit — a small fleet.
+  const { data: vehicleData } = useAdminVehicles({ limit: 200, sort: 'brand' });
+  const vehicleOptions = useMemo(
+    () =>
+      (vehicleData?.items || []).map((v) => ({
+        value: v._id,
+        label: `${vehicleTitle(v)}${v.registrationNumber ? ` · ${v.registrationNumber}` : ''}`,
+      })),
+    [vehicleData]
+  );
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({ defaultValues: EMPTY });
+
+  useEffect(() => {
+    if (open) reset(EMPTY);
+  }, [open, reset]);
+
+  const onSubmit = async (values) => {
+    const payload = {
+      vehicleId: values.vehicleId,
+      type: values.type,
+      scheduledStart: values.scheduledStart,
+      scheduledEnd: values.scheduledEnd,
+    };
+    // Omit empty optionals — the backend coerces '' to a number/date and fails.
+    if (values.description.trim()) payload.description = values.description.trim();
+    if (values.vendor.trim()) payload.vendor = values.vendor.trim();
+    if (values.notes.trim()) payload.notes = values.notes.trim();
+    if (values.cost !== '') payload.cost = Number(values.cost);
+
+    try {
+      await schedule.mutateAsync(payload);
+      toast.success('Maintenance scheduled');
+      onClose();
+    } catch (err) {
+      const { message, errors: fieldErrors } = extractApiError(err);
+      if (Array.isArray(fieldErrors)) {
+        fieldErrors.forEach((fe) => {
+          if (fe.field && fe.field in EMPTY) setError(fe.field, { message: fe.message });
+        });
+      }
+      // A 409 already carries a specific message naming the conflicting booking.
+      toast.error(message);
+    }
+  };
+
+  const saving = isSubmitting || schedule.isPending;
+
+  return (
+    <Modal
+      open={open}
+      onClose={saving ? undefined : onClose}
+      title="Schedule maintenance"
+      description="The vehicle cannot be booked during this window."
+      size="lg"
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button type="submit" form="maintenance-form" loading={saving}>
+            Schedule
+          </Button>
+        </>
+      }
+    >
+      <form id="maintenance-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <Select
+          label="Vehicle"
+          required
+          placeholder="Select a vehicle"
+          options={vehicleOptions}
+          error={errors.vehicleId?.message}
+          {...register('vehicleId', { required: 'Vehicle is required' })}
+        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Select
+            label="Type"
+            required
+            options={MAINTENANCE_TYPE_OPTIONS}
+            error={errors.type?.message}
+            {...register('type', { required: 'Type is required' })}
+          />
+          <Input
+            label={`Estimated cost (${currency})`}
+            type="number"
+            min="0"
+            placeholder="0"
+            error={errors.cost?.message}
+            {...register('cost')}
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input
+            label="Starts"
+            type="datetime-local"
+            required
+            error={errors.scheduledStart?.message}
+            {...register('scheduledStart', { required: 'Start is required' })}
+          />
+          <Input
+            label="Ends"
+            type="datetime-local"
+            required
+            error={errors.scheduledEnd?.message}
+            {...register('scheduledEnd', { required: 'End is required' })}
+          />
+        </div>
+        <Input
+          label="Vendor"
+          placeholder="Garage or service centre"
+          error={errors.vendor?.message}
+          {...register('vendor')}
+        />
+        <Input
+          label="Description"
+          placeholder="e.g. 20,000 km service"
+          error={errors.description?.message}
+          {...register('description')}
+        />
+        <Textarea
+          label="Notes"
+          rows={3}
+          placeholder="Anything the team should know."
+          error={errors.notes?.message}
+          {...register('notes')}
+        />
+      </form>
+    </Modal>
+  );
+}
+
+function CompleteForm({ open, record, currency, onClose }) {
+  const toast = useToast();
+  const complete = useCompleteMaintenance();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({ defaultValues: COMPLETE_EMPTY });
+
+  useEffect(() => {
+    if (!open) return;
+    reset({
+      ...COMPLETE_EMPTY,
+      cost: record?.cost ?? '',
+      notes: record?.notes || '',
+    });
+  }, [open, record, reset]);
+
+  const onSubmit = async (values) => {
+    const payload = {};
+    if (values.cost !== '') payload.cost = Number(values.cost);
+    if (values.odometerAtService !== '') payload.odometerAtService = Number(values.odometerAtService);
+    if (values.notes.trim()) payload.notes = values.notes.trim();
+
+    try {
+      await complete.mutateAsync({ id: record._id, payload });
+      toast.success('Maintenance completed — vehicle released');
+      onClose();
+    } catch (err) {
+      const { message, errors: fieldErrors } = extractApiError(err);
+      if (Array.isArray(fieldErrors)) {
+        fieldErrors.forEach((fe) => {
+          if (fe.field && fe.field in COMPLETE_EMPTY) setError(fe.field, { message: fe.message });
+        });
+      }
+      toast.error(message);
+    }
+  };
+
+  const saving = isSubmitting || complete.isPending;
+
+  return (
+    <Modal
+      open={open}
+      onClose={saving ? undefined : onClose}
+      title="Complete maintenance"
+      description={record ? vehicleLabel(record.vehicleId) : undefined}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button type="submit" form="complete-maintenance-form" loading={saving}>
+            Mark completed
+          </Button>
+        </>
+      }
+    >
+      <form
+        id="complete-maintenance-form"
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-4"
+        noValidate
+      >
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input
+            label={`Final cost (${currency})`}
+            type="number"
+            min="0"
+            placeholder="0"
+            error={errors.cost?.message}
+            {...register('cost')}
+          />
+          <Input
+            label="Odometer (km)"
+            type="number"
+            min="0"
+            hint="Updates the vehicle's mileage."
+            placeholder="e.g. 42500"
+            error={errors.odometerAtService?.message}
+            {...register('odometerAtService')}
+          />
+        </div>
+        <Textarea
+          label="Notes"
+          rows={3}
+          placeholder="Work carried out, parts replaced…"
+          error={errors.notes?.message}
+          {...register('notes')}
+        />
+      </form>
+    </Modal>
+  );
+}
