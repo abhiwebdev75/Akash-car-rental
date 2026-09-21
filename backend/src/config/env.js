@@ -67,7 +67,7 @@ const config = {
   notifications: {
     // Transactional email via any HTTP JSON API (e.g. Resend, Brevo, Mailgun).
     // We POST { from, to, subject, text } and send the API key as a Bearer token.
-    email: {
+email: {
   apiUrl:
     process.env.EMAIL_API_URL ||
     'https://api.mailjet.com/v3.1/send',

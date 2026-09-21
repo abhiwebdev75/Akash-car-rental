@@ -29,7 +29,21 @@ function emailEnabled() {
 async function sendEmail({ to, subject, text }) {
   const { email } = config.notifications;
 
-  if (!to) return;
+  console.log('[EMAIL DEBUG] Config:', {
+    enabled: email.enabled,
+    apiUrl: email.apiUrl,
+    hasApiKey: Boolean(email.apiKey),
+    hasApiSecret: Boolean(email.apiSecret),
+    from: email.from,
+    fromName: email.fromName,
+    to,
+    subject,
+  });
+
+  if (!to) {
+    console.log('[EMAIL DEBUG] No recipient email');
+    return;
+  }
 
   if (!email.enabled) {
     logger.info(
@@ -42,6 +56,8 @@ async function sendEmail({ to, subject, text }) {
   const credentials = Buffer.from(
     `${email.apiKey}:${email.apiSecret}`
   ).toString('base64');
+
+  console.log('[EMAIL DEBUG] Calling Mailjet...');
 
   const res = await fetch(email.apiUrl, {
     method: 'POST',
@@ -68,17 +84,22 @@ async function sendEmail({ to, subject, text }) {
     }),
   });
 
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '');
+  const detail = await res.text();
 
+  console.log('[MAILJET RESPONSE]', {
+    status: res.status,
+    ok: res.ok,
+    body: detail,
+  });
+
+  if (!res.ok) {
     throw new Error(
       `Mailjet API responded ${res.status}: ${detail.slice(0, 500)}`
     );
   }
 
-  return res.json().catch(() => null);
+  return detail;
 }
-
 module.exports = {
   sendEmail,
   emailEnabled,
