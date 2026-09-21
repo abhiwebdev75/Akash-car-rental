@@ -1,49 +1,85 @@
 /**
- * Email service — a single place that actually sends mail. Provider-agnostic:
- * we POST { from, to, subject, text } to any transactional HTTP JSON API (e.g.
- * Resend, Brevo, Mailgun's JSON endpoint) with the API key as a Bearer token,
- * using native fetch (Node 18+) so there are no SDK dependencies.
+ * Email service — Mailjet implementation.
  *
- * When no provider is configured, `sendEmail` logs the message instead of
- * throwing. That keeps the app fully functional out of the box — in
- * development you can read OTP codes straight from the server log.
+ * Sends transactional emails through Mailjet's v3.1 Send API.
+ * Uses native fetch, so no Mailjet SDK is required.
+ *
+ * Required environment variables:
+ *   MJ_APIKEY_PUBLIC
+ *   MJ_APIKEY_PRIVATE
+ *   MAIL_FROM_EMAIL
+ *   MAIL_FROM_NAME
  */
+
 const logger = require('../utils/logger');
 const { config } = require('../config/env');
 
-/** True when an email provider is configured and delivery will be attempted. */
+/**
+ * True when Mailjet is configured and delivery will be attempted.
+ */
 function emailEnabled() {
   return config.notifications.email.enabled;
 }
 
 /**
- * Send a plain-text email. Resolves quietly (no send) when unconfigured or when
- * `to` is missing. Throws only when a configured provider rejects the request,
- * so callers that need delivery guarantees can catch it.
+ * Send a plain-text email through Mailjet.
+ *
+ * Throws only when Mailjet rejects the request.
  */
 async function sendEmail({ to, subject, text }) {
   const { email } = config.notifications;
+
   if (!to) return;
 
   if (!email.enabled) {
-    // Dev/no-provider fallback: surface the content in logs rather than failing.
-    logger.info({ to, subject, text }, '[email:disabled] would have sent email');
+    logger.info(
+      { to, subject, text },
+      '[email:disabled] would have sent email'
+    );
     return;
   }
+
+  const credentials = Buffer.from(
+    `${email.apiKey}:${email.apiSecret}`
+  ).toString('base64');
 
   const res = await fetch(email.apiUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${email.apiKey}`,
+      Authorization: `Basic ${credentials}`,
     },
-    body: JSON.stringify({ from: email.from, to, subject, text }),
+    body: JSON.stringify({
+      Messages: [
+        {
+          From: {
+            Email: email.from,
+            Name: email.fromName,
+          },
+          To: [
+            {
+              Email: to,
+            },
+          ],
+          Subject: subject,
+          TextPart: text,
+        },
+      ],
+    }),
   });
 
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
-    throw new Error(`email API responded ${res.status}: ${detail.slice(0, 200)}`);
+
+    throw new Error(
+      `Mailjet API responded ${res.status}: ${detail.slice(0, 500)}`
+    );
   }
+
+  return res.json().catch(() => null);
 }
 
-module.exports = { sendEmail, emailEnabled };
+module.exports = {
+  sendEmail,
+  emailEnabled,
+};

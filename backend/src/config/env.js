@@ -68,13 +68,29 @@ const config = {
     // Transactional email via any HTTP JSON API (e.g. Resend, Brevo, Mailgun).
     // We POST { from, to, subject, text } and send the API key as a Bearer token.
     email: {
-      apiUrl: process.env.EMAIL_API_URL,
-      apiKey: process.env.EMAIL_API_KEY,
-      from: process.env.EMAIL_FROM || 'no-reply@akashcarrental.com',
-      get enabled() {
-        return Boolean(this.apiUrl && this.apiKey);
-      },
-    },
+  apiUrl:
+    process.env.EMAIL_API_URL ||
+    'https://api.mailjet.com/v3.1/send',
+
+  apiKey: process.env.EMAIL_API_KEY,
+
+  apiSecret: process.env.EMAIL_API_SECRET,
+
+  from: process.env.EMAIL_FROM,
+
+  fromName:
+    process.env.EMAIL_FROM_NAME ||
+    'Akash Car Rental',
+
+  get enabled() {
+    return Boolean(
+      this.apiUrl &&
+      this.apiKey &&
+      this.apiSecret &&
+      this.from
+    );
+  },
+},
     // WhatsApp via Meta's WhatsApp Cloud API (Graph API). Needs a phone-number
     // id and a permanent token. Sends plain text messages.
     whatsapp: {
