@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleRoute } from './components/RoleRoute';
 import { ScrollToTop } from './components/ScrollToTop';
 import { RouteProgress } from './components/RouteProgress';
+import { RouteTitle } from './components/RouteTitle';
 import { PageLoader } from './components/PageLoader';
 import { ROUTES, STAFF_ROLES, STAFF_UP, MANAGER_UP, FINANCE_ROLES } from './lib/constants';
 
@@ -54,6 +55,7 @@ export default function App() {
     <>
       <ScrollToTop />
       <RouteProgress />
+      <RouteTitle />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route element={<CustomerLayout />}>

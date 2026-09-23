@@ -1,17 +1,23 @@
-import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   BadgeCheck,
   CalendarCheck,
   Car,
+  Clock,
+  Fuel,
+  Headphones,
   KeyRound,
   MapPin,
   ShieldCheck,
+  Sparkles,
   Wallet,
 } from 'lucide-react';
 import { SearchWidget } from '../components/SearchWidget';
 import { Button } from '../components/ui/Button';
 import { ErrorState } from '../components/ui/ErrorState';
+import { HeroCarousel } from '../components/HeroCarousel';
+import { Marquee } from '../components/Marquee';
+import { LazySection } from '../components/LazySection';
 import { VehicleCard, VehicleCardSkeleton } from '../features/vehicles/VehicleCard';
 import { useVehicles } from '../features/vehicles/hooks';
 import { useSettings } from '../features/settings/hooks';
@@ -31,19 +37,48 @@ const STEPS = [
   { icon: KeyRound, title: 'Drive', text: 'Collect the keys and hit the road.' },
 ];
 
+// Trust signals for the scrolling marquee band.
+const MARQUEE_ITEMS = [
+  { icon: ShieldCheck, text: 'Fully insured vehicles' },
+  { icon: Clock, text: '24/7 roadside assistance' },
+  { icon: Fuel, text: 'Flexible fuel options' },
+  { icon: Sparkles, text: 'Sanitised between rentals' },
+  { icon: Wallet, text: 'No hidden charges' },
+  { icon: Headphones, text: 'Friendly local support' },
+  { icon: CalendarCheck, text: 'Free date changes' },
+];
+
+/** Build carousel slides from featured vehicles' primary images. */
+function toSlides(vehicles) {
+  return (vehicles || [])
+    .map((v) => {
+      const p = v?.primaryImage;
+      const url =
+        (typeof p === 'string' && p) ||
+        p?.url ||
+        (v?.images || []).find((i) => i.isPrimary)?.url ||
+        (v?.images || [])[0]?.url ||
+        null;
+      return url ? { url } : null;
+    })
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
 export default function Home() {
   const { data: settings } = useSettings();
   const { data, isLoading, isError, error, refetch } = useVehicles({ limit: 6 });
   const featured = data?.items || [];
   const businessName = settings?.businessName || 'Akash Car Rental';
+  const slides = toSlides(featured);
 
   return (
     <div>
       {/* ---------- Hero ---------- */}
       <section className="relative overflow-hidden border-b border-hair bg-ink-900">
-        <HeroBackdrop />
+        {slides.length > 0 ? <HeroCarousel slides={slides} /> : <HeroBackdrop />}
         <div className="container-page relative py-16 sm:py-20 lg:py-24">
-          <div className="max-w-2xl">
+          <div className="max-w-2xl animate-fade-in">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 ring-1 ring-white/15">
               <span className="h-1.5 w-1.5 rounded-full bg-route" />
               Self-drive car rental
@@ -59,10 +94,22 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-9 max-w-4xl">
+          <div className="mt-9 max-w-4xl animate-scale-in">
             <SearchWidget />
           </div>
         </div>
+      </section>
+
+      {/* ---------- Trust marquee ---------- */}
+      <section className="border-b border-hair bg-surface py-3">
+        <Marquee>
+          {MARQUEE_ITEMS.map(({ icon: Icon, text }) => (
+            <span key={text} className="flex items-center gap-2.5 text-sm font-semibold text-fg">
+              <Icon className="h-4 w-4 text-route" />
+              {text}
+            </span>
+          ))}
+        </Marquee>
       </section>
 
       {/* ---------- Value props ---------- */}
@@ -112,55 +159,59 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------- How it works ---------- */}
-      <section className="container-page py-16">
-        <div className="rounded-2xl border border-hair bg-surface p-8 sm:p-10">
-          <h2 className="font-display text-2xl font-bold text-fg-strong sm:text-3xl">
-            How it works
-          </h2>
-          <p className="mt-1.5 text-sm text-muted">Four steps from search to the open road.</p>
-
-          <ol className="relative mt-9 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {/* route line behind the steps (desktop) */}
-            <span className="pointer-events-none absolute left-0 right-0 top-6 hidden h-px bg-gradient-to-r from-route/0 via-route/40 to-route/0 lg:block" />
-            {STEPS.map(({ icon: Icon, title, text }, i) => (
-              <li key={title} className="relative flex flex-col items-start">
-                <span className="relative z-10 inline-flex h-12 w-12 items-center justify-center rounded-full border border-hair bg-card text-ink-800 dark:text-white">
-                  <Icon className="h-5 w-5" />
-                  <span className="absolute -right-1 -top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-signal text-[11px] font-bold text-ink-900">
-                    {i + 1}
-                  </span>
-                </span>
-                <h3 className="mt-4 text-base font-semibold text-fg-strong">{title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-muted">{text}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* ---------- CTA band ---------- */}
-      <section className="container-page pb-20">
-        <div className="relative overflow-hidden rounded-2xl bg-ink-800 px-8 py-12 text-center sm:px-12 sm:py-16">
-          <div className="relative">
-            <BadgeCheck className="mx-auto h-9 w-9 text-signal" />
-            <h2 className="mt-4 font-display text-2xl font-bold text-white sm:text-3xl">
-              Ready to hit the road?
+      {/* ---------- How it works (lazy) ---------- */}
+      <LazySection minHeight={360}>
+        <section className="container-page py-16">
+          <div className="rounded-2xl border border-hair bg-surface p-8 sm:p-10">
+            <h2 className="font-display text-2xl font-bold text-fg-strong sm:text-3xl">
+              How it works
             </h2>
-            <p className="mx-auto mt-2 max-w-lg text-sm text-white/70 sm:text-base">
-              Browse the fleet and lock in your dates with {businessName}. Confirmation is instant.
-            </p>
-            <div className="mt-7 flex flex-wrap justify-center gap-3">
-              <Button to={ROUTES.cars} variant="primary" size="lg">
-                Browse cars
-              </Button>
-              <Button to={ROUTES.register} variant="secondary" size="lg">
-                Create an account
-              </Button>
+            <p className="mt-1.5 text-sm text-muted">Four steps from search to the open road.</p>
+
+            <ol className="relative mt-9 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {/* route line behind the steps (desktop) */}
+              <span className="pointer-events-none absolute left-0 right-0 top-6 hidden h-px bg-gradient-to-r from-route/0 via-route/40 to-route/0 lg:block" />
+              {STEPS.map(({ icon: Icon, title, text }, i) => (
+                <li key={title} className="relative flex flex-col items-start">
+                  <span className="relative z-10 inline-flex h-12 w-12 items-center justify-center rounded-full border border-hair bg-card text-ink-800 dark:text-white">
+                    <Icon className="h-5 w-5" />
+                    <span className="absolute -right-1 -top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-signal text-[11px] font-bold text-ink-900">
+                      {i + 1}
+                    </span>
+                  </span>
+                  <h3 className="mt-4 text-base font-semibold text-fg-strong">{title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted">{text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      </LazySection>
+
+      {/* ---------- CTA band (lazy) ---------- */}
+      <LazySection minHeight={280}>
+        <section className="container-page pb-20">
+          <div className="relative overflow-hidden rounded-2xl bg-ink-800 px-8 py-12 text-center sm:px-12 sm:py-16">
+            <div className="relative">
+              <BadgeCheck className="mx-auto h-9 w-9 text-signal" />
+              <h2 className="mt-4 font-display text-2xl font-bold text-white sm:text-3xl">
+                Ready to hit the road?
+              </h2>
+              <p className="mx-auto mt-2 max-w-lg text-sm text-white/70 sm:text-base">
+                Browse the fleet and lock in your dates with {businessName}. Confirmation is instant.
+              </p>
+              <div className="mt-7 flex flex-wrap justify-center gap-3">
+                <Button to={ROUTES.cars} variant="primary" size="lg">
+                  Browse cars
+                </Button>
+                <Button to={ROUTES.register} variant="secondary" size="lg">
+                  Create an account
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </LazySection>
     </div>
   );
 }

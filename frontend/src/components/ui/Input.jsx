@@ -8,7 +8,7 @@ import { CONTROL_BASE, Field } from './Field';
  * react-hook-form's register() works directly.
  */
 export const Input = forwardRef(function Input(
-  { label, hint, error, required, className, id, type = 'text', leftIcon, onWheel, ...props },
+  { label, hint, error, required, className, id, type = 'text', leftIcon, rightSlot, onWheel, ...props },
   ref
 ) {
   const autoId = useId();
@@ -40,10 +40,14 @@ export const Input = forwardRef(function Input(
           'h-11',
           error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/40' : 'border-hair',
           leftIcon && 'pl-10',
+          rightSlot && 'pr-11',
           className
         )}
         {...props}
       />
+      {rightSlot && (
+        <span className="absolute right-1.5 top-1/2 -translate-y-1/2">{rightSlot}</span>
+      )}
     </div>
   );
 

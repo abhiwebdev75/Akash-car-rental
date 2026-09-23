@@ -91,11 +91,24 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(8px) scale(0.98)' },
           '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
         },
+        // Continuous horizontal scroll for the trust-signal marquee. The track is
+        // duplicated, so translating by -50% loops seamlessly.
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+        // Gentle crossfade + zoom for carousel slides entering view.
+        'fade-zoom': {
+          '0%': { opacity: '0', transform: 'scale(1.06)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
       },
       animation: {
         'route-draw': 'route-draw 1.1s ease-out forwards',
         'fade-in': 'fade-in 0.2s ease-out',
         'scale-in': 'scale-in 0.2s ease-out',
+        marquee: 'marquee 32s linear infinite',
+        'fade-zoom': 'fade-zoom 0.9s ease-out',
       },
     },
   },
