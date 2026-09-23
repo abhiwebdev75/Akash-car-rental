@@ -5,6 +5,8 @@ import { ShieldCheck } from 'lucide-react';
 import { authApi } from '../features/auth/api';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { PasswordInput } from '../components/ui/PasswordInput';
+import { AuthBackdrop, AuthTrustNote } from '../components/AuthBackdrop';
 import { Logo } from '../components/Logo';
 import { ROUTES } from '../lib/constants';
 import { extractApiError } from '../lib/apiClient';
@@ -41,8 +43,9 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="container-page flex min-h-[calc(100vh-4rem)] items-center justify-center py-12">
-      <div className="w-full max-w-md">
+    <div className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center overflow-hidden px-4 py-12">
+      <AuthBackdrop />
+      <div className="relative w-full max-w-md animate-scale-in">
         <div className="mb-8 flex flex-col items-center text-center">
           <Logo showWordmark={false} />
           <h1 className="mt-4 font-display text-2xl font-bold text-fg-strong">Reset password</h1>
@@ -53,7 +56,7 @@ export default function ResetPassword() {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4 rounded-2xl border border-hair bg-card p-6 shadow-card sm:p-8"
+          className="space-y-4 rounded-2xl border border-hair bg-card/95 p-6 shadow-pop backdrop-blur-sm sm:p-8"
           noValidate
         >
           {serverError && (
@@ -78,8 +81,7 @@ export default function ResetPassword() {
               pattern: { value: /^\d{6}$/, message: 'The code is 6 digits' },
             })}
           />
-          <Input
-            type="password"
+          <PasswordInput
             label="New password"
             autoComplete="new-password"
             placeholder="At least 8 characters"
@@ -89,8 +91,7 @@ export default function ResetPassword() {
               minLength: { value: 8, message: 'Use at least 8 characters' },
             })}
           />
-          <Input
-            type="password"
+          <PasswordInput
             label="Confirm new password"
             autoComplete="new-password"
             placeholder="Re-enter your password"
@@ -118,6 +119,8 @@ export default function ResetPassword() {
             Request again
           </Link>
         </p>
+
+        <AuthTrustNote />
       </div>
     </div>
   );
