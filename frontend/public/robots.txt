@@ -1,0 +1,18 @@
+# robots.txt for Akash Car Rental
+# Replace the sitemap host below with your real domain when it goes live.
+
+User-agent: *
+Allow: /
+
+# Keep private / transactional areas out of search results.
+Disallow: /admin
+Disallow: /account
+Disallow: /book
+Disallow: /booking
+Disallow: /login
+Disallow: /register
+Disallow: /verify-email
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://www.akashcarrental.com/sitemap.xml

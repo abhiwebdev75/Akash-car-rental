@@ -22,6 +22,7 @@ import { VehicleCard, VehicleCardSkeleton } from '../features/vehicles/VehicleCa
 import { useVehicles } from '../features/vehicles/hooks';
 import { useSettings } from '../features/settings/hooks';
 import { ROUTES } from '../lib/constants';
+import { SERVICE_AREAS } from '../lib/seo';
 
 const VALUE_PROPS = [
   { icon: Wallet, title: 'Transparent pricing', text: 'The price you see is the price you pay — taxes and deposit shown up front.' },
@@ -157,6 +158,39 @@ export default function Home() {
             </p>
           )}
         </div>
+      </section>
+
+      {/* ---------- Areas we serve (local SEO content) ---------- */}
+      <section className="container-page py-14">
+        <div className="max-w-2xl">
+          <h2 className="font-display text-2xl font-bold text-fg-strong sm:text-3xl">
+            Self-drive car rental in Kharar, Mohali, Chandigarh &amp; Hamirpur
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
+            Based in Kharar, {businessName} offers self-drive cars for hire across the
+            Tricity — Kharar, Mohali and Chandigarh — as well as Hamirpur in Himachal
+            Pradesh. Whether it's an airport run, a weekend in the hills or a daily
+            commute, pick up a clean, well-maintained car near you and drive on your own
+            terms with clear, all-inclusive pricing.
+          </p>
+        </div>
+
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {SERVICE_AREAS.map(({ city, region }) => (
+            <li
+              key={city}
+              className="flex items-start gap-3 rounded-xl border border-hair bg-card p-4 shadow-card"
+            >
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-signal/12 text-signal-700 dark:text-signal-400">
+                <MapPin className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-fg-strong">Car rental in {city}</p>
+                <p className="mt-0.5 text-xs text-muted">{region}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {/* ---------- How it works (lazy) ---------- */}

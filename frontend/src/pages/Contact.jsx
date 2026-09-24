@@ -99,7 +99,7 @@ export default function Contact() {
       <PageHero
         eyebrow="Contact"
         title="We’re here to help"
-        subtitle={`Questions about a booking, a vehicle, or pickup? Reach ${businessName} however suits you best.`}
+        subtitle={`Questions about a booking, a vehicle, or pickup? Reach ${businessName} — self-drive car rental in Kharar, serving Mohali, Chandigarh and Hamirpur (HP) — however suits you best.`}
       />
 
       <div className="container-page py-14 sm:py-16">

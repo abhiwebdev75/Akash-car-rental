@@ -3,11 +3,98 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--
+      SEO defaults. These are what non-JS crawlers see; RouteSeo.jsx refines the
+      title/description/canonical per page at runtime. IMPORTANT: replace the
+      https://www.akashcarrental.com origin below (and in sitemap.xml / robots.txt
+      / VITE_SITE_URL) with your real domain once it's live.
+    -->
+    <title>Car Rental in Kharar, Mohali & Chandigarh | Akash Car Rental</title>
     <meta
       name="description"
-      content="Book a self-drive car in minutes. Live availability, transparent pricing, and pickup at a location near you."
+      content="Self-drive car rental in Kharar, Mohali, Chandigarh and Hamirpur (HP). Book a well-maintained car online in minutes — live availability and transparent, all-inclusive pricing."
     />
+    <meta
+      name="keywords"
+      content="car rental in Kharar, self drive cars Mohali, car hire Chandigarh, car rental Hamirpur HP, rent a car near me, self drive car rental Punjab, Akash Car Rental"
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Akash Car Rental" />
     <meta name="theme-color" content="#0A1524" />
+    <link rel="canonical" href="https://www.akashcarrental.com/" />
+
+    <!-- Local / geo signals -->
+    <meta name="geo.region" content="IN-PB" />
+    <meta name="geo.placename" content="Kharar, Punjab" />
+    <meta name="geo.position" content="30.7460;76.6469" />
+    <meta name="ICBM" content="30.7460, 76.6469" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Akash Car Rental" />
+    <meta property="og:title" content="Car Rental in Kharar, Mohali & Chandigarh | Akash Car Rental" />
+    <meta
+      property="og:description"
+      content="Self-drive car rental in Kharar, Mohali, Chandigarh and Hamirpur (HP). Book online in minutes with live availability and transparent pricing."
+    />
+    <meta property="og:url" content="https://www.akashcarrental.com/" />
+    <meta property="og:image" content="https://www.akashcarrental.com/og-image.jpg" />
+    <meta property="og:locale" content="en_IN" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Car Rental in Kharar, Mohali & Chandigarh | Akash Car Rental" />
+    <meta
+      name="twitter:description"
+      content="Self-drive car rental in Kharar, Mohali, Chandigarh and Hamirpur (HP). Book online in minutes."
+    />
+    <meta name="twitter:image" content="https://www.akashcarrental.com/og-image.jpg" />
+
+    <!--
+      Structured data (JSON-LD): tells Google this is a local car-rental business,
+      where it is, and the areas it serves. This is in the initial HTML, so search
+      engines read it without executing any JavaScript.
+    -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "AutoRental",
+      "@id": "https://www.akashcarrental.com/#business",
+      "name": "Akash Car Rental",
+      "description": "Self-drive car rental serving Kharar, Mohali, Chandigarh and Hamirpur (HP).",
+      "url": "https://www.akashcarrental.com/",
+      "image": "https://www.akashcarrental.com/og-image.jpg",
+      "telephone": "+91-7876573193",
+      "priceRange": "₹₹",
+      "currenciesAccepted": "INR",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Near Bhagomajra Toll Plaza",
+        "addressLocality": "Kharar",
+        "addressRegion": "Punjab",
+        "postalCode": "140301",
+        "addressCountry": "IN"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 30.7460,
+        "longitude": 76.6469
+      },
+      "areaServed": [
+        { "@type": "City", "name": "Kharar" },
+        { "@type": "City", "name": "Mohali" },
+        { "@type": "City", "name": "Chandigarh" },
+        { "@type": "City", "name": "Hamirpur" }
+      ],
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+        "opens": "08:00",
+        "closes": "21:00"
+      }
+    }
+    </script>
 
     <!--
       Set the theme BEFORE first paint to avoid a light/dark flash (FOUC).
@@ -35,7 +122,6 @@
       rel="stylesheet"
     />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <title>Akash Car Rental — Self-drive cars, booked in minutes</title>
   </head>
   <body>
     <div id="root"></div>

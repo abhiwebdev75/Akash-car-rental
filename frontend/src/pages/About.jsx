@@ -112,7 +112,9 @@ export default function About() {
               </p>
               <p>
                 Whether it’s a weekend escape, an airport run, or a month-long need, our aim is the
-                same: a well-kept car, a fair price, and none of the usual friction.
+                same: a well-kept car, a fair price, and none of the usual friction. Based in Kharar,
+                we offer self-drive car rental across Mohali, Chandigarh and the wider Tricity, and
+                out to Hamirpur in Himachal Pradesh.
               </p>
             </div>
           </div>
