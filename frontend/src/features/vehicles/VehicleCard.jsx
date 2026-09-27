@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Fuel, Gauge, MapPin, Users } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
@@ -27,6 +28,9 @@ export function VehicleCard({ vehicle, search = '', className }) {
   const { data: settings } = useSettings();
   const currency = settings?.currency || 'INR';
 
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+
   const img = imageUrl(vehicle);
   const title = vehicle.title || [vehicle.brand, vehicle.model].filter(Boolean).join(' ');
   const loc = vehicle.locationId;
@@ -35,13 +39,22 @@ export function VehicleCard({ vehicle, search = '', className }) {
   return (
     <Card as={Link} to={to} interactive className={cn('group flex flex-col overflow-hidden', className)}>
       <div className="relative aspect-[16/10] overflow-hidden bg-ink-100 dark:bg-ink-800">
-        {img ? (
-          <img
-            src={img}
-            alt={title}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+        {img && !failed ? (
+          <>
+            {/* Skeleton shimmer shown until the image finishes loading */}
+            {!loaded && <Skeleton className="absolute inset-0 rounded-none" />}
+            <img
+              src={img}
+              alt={title}
+              loading="lazy"
+              onLoad={() => setLoaded(true)}
+              onError={() => setFailed(true)}
+              className={cn(
+                'h-full w-full object-cover transition-all duration-500 group-hover:scale-105',
+                loaded ? 'opacity-100' : 'opacity-0'
+              )}
+            />
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center text-muted">
             <Gauge className="h-10 w-10 opacity-30" />

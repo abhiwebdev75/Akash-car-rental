@@ -94,9 +94,9 @@ export default function VehicleDetail() {
         <div>
           {/* Gallery */}
           <div className="overflow-hidden rounded-2xl border border-hair bg-card">
-            <div className="aspect-[16/10] bg-ink-100 dark:bg-ink-800">
+            <div className="relative aspect-[16/10] bg-ink-100 dark:bg-ink-800">
               {images[activeImg]?.url ? (
-                <img src={images[activeImg].url} alt={title} className="h-full w-full object-cover" />
+                <GalleryImage key={images[activeImg].url} src={images[activeImg].url} alt={title} />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-muted">
                   <Gauge className="h-14 w-14 opacity-25" />
@@ -295,6 +295,25 @@ export default function VehicleDetail() {
         </aside>
       </div>
     </div>
+  );
+}
+
+function GalleryImage({ src, alt }) {
+  // `key` on the element (set by the caller via src) resets this state when the
+  // active image changes, so the skeleton shows again while the new one loads.
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      {!loaded && <Skeleton className="absolute inset-0 rounded-none" />}
+      <img
+        src={src}
+        alt={alt}
+        onLoad={() => setLoaded(true)}
+        className={`h-full w-full object-cover transition-opacity duration-500 ${
+          loaded ? 'opacity-100' : 'opacity-0'
+        }`}
+      />
+    </>
   );
 }
 
