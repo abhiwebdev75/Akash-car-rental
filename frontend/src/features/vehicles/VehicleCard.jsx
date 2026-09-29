@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Fuel, Gauge, MapPin, Users } from 'lucide-react';
+import { Car, Fuel, Gauge, MapPin, Users } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Rating } from '../../components/ui/Rating';
@@ -41,8 +41,9 @@ export function VehicleCard({ vehicle, search = '', className }) {
       <div className="relative aspect-[16/10] overflow-hidden bg-ink-100 dark:bg-ink-800">
         {img && !failed ? (
           <>
-            {/* Skeleton shimmer shown until the image finishes loading */}
-            {!loaded && <Skeleton className="absolute inset-0 rounded-none" />}
+            {/* Branded car placeholder shown until the photo finishes loading
+                (or if it fails). The card's text details render regardless. */}
+            {!loaded && <CarPlaceholder loading />}
             <img
               src={img}
               alt={title}
@@ -50,15 +51,13 @@ export function VehicleCard({ vehicle, search = '', className }) {
               onLoad={() => setLoaded(true)}
               onError={() => setFailed(true)}
               className={cn(
-                'h-full w-full object-cover transition-all duration-500 group-hover:scale-105',
+                'h-full w-full object-cover transition-opacity duration-500 group-hover:scale-105',
                 loaded ? 'opacity-100' : 'opacity-0'
               )}
             />
           </>
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-muted">
-            <Gauge className="h-10 w-10 opacity-30" />
-          </div>
+          <CarPlaceholder />
         )}
         <div className="absolute left-3 top-3">
           <Badge tone="neutral" className="bg-paper/90 backdrop-blur-sm">
@@ -116,6 +115,25 @@ function Spec({ icon: Icon, children }) {
       <Icon className="h-3.5 w-3.5" />
       {children}
     </li>
+  );
+}
+
+/**
+ * Placeholder that fills the image area with a car glyph on a soft gradient —
+ * used both while a photo is still loading (`loading` pulses the icon) and when
+ * a vehicle has no image / the image fails to load.
+ */
+function CarPlaceholder({ loading = false }) {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-ink-100 to-ink-200 dark:from-ink-800 dark:to-ink-900">
+      <Car
+        className={cn(
+          'h-12 w-12 text-ink-400 dark:text-ink-600',
+          loading && 'motion-safe:animate-pulse'
+        )}
+        aria-hidden="true"
+      />
+    </div>
   );
 }
 
